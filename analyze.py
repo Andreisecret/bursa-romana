@@ -1,12 +1,13 @@
 """analyze.py — event-study: cat de repede si cat de tare misca politica BVB.
-Metoda: fereastra estimare [-60,-11], eveniment [-5,+5].
+Fereastra estimare [-60,-11], eveniment [-5,+5].
   BET si indici: AR = R - media(estimare). Actiuni: model de piata OLS vs BET.
   Control extern: BET vs STOXX600 (model OLS) -> separa soc intern de zi global-rosii.
   SERIA PRIMARA = BET-TR (randament total): ajust=1 din feed-ul BVB nu ajusteaza
   dividendele, deci randamentele de pret sunt contaminate in ferestrele de ex-dividend.
   contaminat_dividend flagheaza automat orice eveniment cu |CAR3_BET - CAR3_BETTR| > 1pp.
-Semnificativ: |AR0|>2% sau |CAR[-1,+1]|>3%; formal: t = CAR/(sd*sqrt(T)), * |t|>1.96, ** |t|>2.58.
-Utilizare: python analyze.py -> outputs/event_table.csv + group_test.csv + *.png
+  ATENTIE: t-urile clasice sunt excesiv de optimiste (fereastra de estimatie poate fi
+  liniistita). Verdictul statistic vine din placebo.py, nu din t. Vezi README.
+Utilizare: python analyze.py -> outputs/event_table.csv + group_test.csv + 4 figuri
 """
 from pathlib import Path
 from datetime import datetime
@@ -59,11 +60,6 @@ def car_t(series_ar, pos, w, sd):
     t = car / (sd * np.sqrt(len(seg))) if sd and sd > 0 else np.nan
     return car, t
 
-def stars(t):
-    if not np.isfinite(t):
-        return ""
-    return "**" if abs(t) > 2.58 else ("*" if abs(t) > 1.96 else "")
-
 def study(rets, ev_date):
     td = rets.index
     pos = td.get_loc(ev_date)
@@ -81,7 +77,6 @@ def study(rets, ev_date):
     b, a = ols_beta(est["BET"].values, est["STOXX"].values)
     ar_bx = rets["BET"] - (a + b * rets["STOXX"])
     sd_bx = ar_bx.iloc[pos - 60:pos - 10].std()
-    out["bet_beta_stoxx"] = b
     for w, n, tn in [([0, 0], "ar0", "t0"), ([-1, 1], "car3", "t3")]:
         c, t = car_t(ar_bx, pos, w, sd_bx)
         out[f"betx_{n}"], out[f"betx_{tn}"] = c, t
@@ -102,7 +97,6 @@ def study(rets, ev_date):
         ar = rets[s] - (als + bs * rets["BET"])
         c, _ = car_t(ar, pos, [-1, 1], ar.iloc[pos - 60:pos - 10].std())
         out[f"{s}_car3"] = c
-    out["bet_r0_raw"] = rets["BET"].iloc[pos]
     return out
 
 def main():
@@ -172,7 +166,7 @@ def main():
     ax.plot(px.index, px["BET"], lw=1.2)
     for _, r in tab[tab.confidence == "ridicata"].iterrows():
         ax.axvline(pd.Timestamp(r["zi_tranzactionare"]), color="r", alpha=0.45, ls="--", lw=1)
-    ax.set_title("BET 2024-2026 + evenimente politice (linii rosii = incredere ridicata)")
+    ax.set_title("BET 2020-2026 + evenimente politice (linii rosii = incredere ridicata)")
     ax.xaxis.set_major_locator(mdates.MonthLocator(interval=3))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
     fig.autofmt_xdate(); fig.tight_layout()
@@ -196,7 +190,7 @@ def main():
         ax2.legend(fontsize=7, ncol=2)
         fig2.tight_layout(); fig2.savefig(OUT / "fig_car_paths.png", dpi=130)
 
-    # Fig3: BET vs STOXX600 normalizat (baza 2024-01-02=100) -> divergenta interna vs externa
+    # Fig3: BET vs STOXX600 normalizat (baza 100 la inceputul seriei) -> divergenta interna vs externa
     base = px.index[1]
     fig3, ax3 = plt.subplots(figsize=(12, 4.5))
     ax3.plot(px.index, px["BET"] / px["BET"].loc[base] * 100, label="BET", lw=1.3)
@@ -205,14 +199,14 @@ def main():
     ax3.plot(px.index, sx / sx.loc[base] * 100, label="STOXX600", lw=1.1, alpha=0.8)
     for _, r in tab[(tab.confidence == "ridicata") & (tab.semnificativ)].iterrows():
         ax3.axvline(pd.Timestamp(r["zi_tranzactionare"]), color="r", alpha=0.35, ls="--", lw=1)
-    ax3.set_title("BET vs STOXX600 (2024-01=100): socurile politice RO decupleaza de Europa")
+    ax3.set_title("BET vs STOXX600 (2020-01=100): socurile politice RO decupleaza de Europa")
     ax3.legend(); fig3.autofmt_xdate(); fig3.tight_layout()
     fig3.savefig(OUT / "fig_bet_vs_stoxx.png", dpi=130)
 
-    # Fig4: CAR3 comparat pe indici la cele 5 socuri majore
+    # Fig4: CAR3 comparat pe indici la cele 5 socuri majore (seria primara, randament total)
     majors = tab[tab.event_id.isin(["tur1_2024", "ccr_anulare_2024", "tur1_2025", "tur2_2025", "parlamentare_2024"])]
     if len(majors):
-        cols = ["bet_car3", "ROTX_car3", "BET-FI_car3", "BET-NG_car3"]
+        cols = ["car3_tr", "ROTX_car3", "BET-FI_car3", "BET-NG_car3"]
         x = np.arange(len(majors)); w = 0.19
         fig4, ax4 = plt.subplots(figsize=(11, 4.5))
         for i, c in enumerate(cols):

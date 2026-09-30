@@ -101,4 +101,27 @@ for f in ["outputs/placebo_null.csv", "outputs/placebo_results.csv", "outputs/fi
     if not (ROOT / f).exists():
         fails.append(f)
 
+# 12. tabelele din paper sunt GENERATE din date -> nu se pot dezacordea
+import re
+for f in ["macros.tex", "tab_events.tex", "tab_main.tex", "tab_speed.tex",
+          "tab_idx.tex", "tab_placebo.tex"]:
+    ok = (ROOT / "paper" / "tables" / f).exists()
+    print(f"{'OK ' if ok else 'FAIL'} generat paper/tables/{f}")
+    if not ok:
+        fails.append(f)
+mac = (ROOT / "paper" / "tables" / "macros.tex").read_text(encoding="utf-8")
+names = re.findall(r"\\newcommand\{\\([^}]+)\}", mac)
+bad = [n for n in names if not n.isalpha()]   # TeX: cifrele taie control word-ul
+ok = not bad
+print(f"{'OK ' if ok else 'FAIL'} {len(names)} macro-uri, toate doar litere" +
+      (f" (OFENDE: {bad})" if bad else ""))
+if not ok:
+    fails.append("macro_nume")
+# cifrarele-cheie din prosa trebuie sa existe ca macro, nu scrise manual
+for need in ["NullSd", "NullPqfive", "TurTwoCar", "TurTwoP", "LocaleTr", "CiucaStoxx"]:
+    ok = f"\\{need}" in mac
+    print(f"{'OK ' if ok else 'FAIL'} macro prezent: \\{need}")
+    if not ok:
+        fails.append(need)
+
 raise SystemExit(1 if fails else print("TOATE CHECK-URILE TREC"))

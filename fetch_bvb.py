@@ -21,8 +21,6 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; bvb-go)",
            "Referer": "https://www.bvb.ro/"}
 TICKERS = ["BET", "TLV", "SNP", "BRD", "H2O", "SNG", "DIGI", "TEL", "SNN",
            "ROTX", "BET-TR", "BET-FI", "BET-NG"]
-# indicele folosit pentru inferenta principala: randament total, imune la ex-dividend
-PRIMARY_INDEX = "BET-TR"
 ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)

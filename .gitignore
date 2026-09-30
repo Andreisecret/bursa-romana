@@ -1,7 +1,8 @@
 __pycache__/
 *.pyc
-paper/build*.log
-paper/*.aux
 paper/*.log
+paper/*.aux
 paper/*.out
-paper/texput.log
+# instantanee RSS: regenerabile, cu timestamp de colectare, nu consumate de analiza
+data/news_raw.csv
+data/news_politic.csv

@@ -1,6 +1,6 @@
 # Cât de rapid mișcă politica BVB (BET, 2020–2026)
 
-Rulare completă: `python fetch_bvb.py --from 2020-01-01 && python fetch_bench.py --from 2020-01-01 && python fetch_news.py && python analyze.py && python placebo.py && python fetch_intraday.py && python check.py`
+Rulare completă: `python fetch_bvb.py --from 2020-01-01 && python fetch_bench.py --from 2020-01-01 && python fetch_news.py && python analyze.py && python placebo.py && python make_tables.py && python fetch_intraday.py && python check.py && (cd paper && pdflatex paper.tex)`
 
 ## Răspunsul pe scurt ( versiunea calibrată placebo)
 
@@ -95,12 +95,14 @@ trio-ul electoral este **retractat**: era un artefact al aceleiași ferestre de 
 
 ## Fișiere
 
-- `fetch_bvb.py` (`--from/--to`) — zilnice (BET + 8 acțiuni + 4 indici) → `data/prices_daily.csv`; **documentață defectul `ajust=1`**
+- `fetch_bvb.py` (`--from/--to`) — zilnice (BET + 8 acțiuni + 4 indici) → `data/prices_daily.csv`; **documentat defectul `ajust=1`**
 - `fetch_bench.py` (`--from`) — STOXX600 (Yahoo) → `data/bench_daily.csv`
-- `fetch_news.py` — RSS → `data/news_raw.csv`, `news_politic.csv`
+- `fetch_news.py` — colector RSS autonom (G4Media/HotNews/Digi24/Economica). Nu intră în
+  pipeline: RSS acoperă doar prezentul, iar istoricul e datat manual în `events.csv`
 - `events.csv` — 24 evenimente (2020–2025) cu scope/expected/in_grup/confidence
 - `analyze.py` → `event_table.csv` (include `car3_tr`, `t3_tr`, `contaminat_dividend`), `group_test.csv`, 4 figuri
 - `placebo.py` (`--n`, `--seed`) → `placebo_null.csv`, `placebo_results.csv`, `fig_placebo.png` — **calibrarea care dictează concluzia**
+- `make_tables.py` → `paper/tables/*.tex` + `macros.tex`; **toate cifrele din lucrare vin de aici**, deci nu se pot dezacordea cu datele
 - `fetch_intraday.py` — 15min pe 3 șocuri → `data/intraday_15m.csv`, `fig_intraday_*.png`
-- `check.py` — 18 check-uri (toate trec), inclusiv auto-detectia contaminării și calibrul placebo
-- `paper/` — research paper LaTeX → `paper.pdf`
+- `check.py` — 24 check-uri (toate trec), inclusiv auto-detectia contaminării, calibrul placebo, generarea tabelelor
+- `paper/` — research paper LaTeX → `paper.pdf` (8 pagini); `pdflatex paper.tex` de două ori
