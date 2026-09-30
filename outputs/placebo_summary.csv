@@ -1,0 +1,2 @@
+n_null,null_mean,null_sd,null_p95,null_max,null_p95_postcovid,n_events,ev_mean_abs,null_mean_abs,p_agregat,p_perm,exceed_observed,exceed_expected,n_p05_full,n_p05_postcovid,rho_fereastra_min,n_p05_w-10
+500,-0.0015194763741958966,1.940852411046946,3.983189109988475,9.805192632473531,4.001505887281145,22,2.0045454545454544,1.3752092813507055,0.026048697565121744,20000,3,1.1,3,3,1.0,4

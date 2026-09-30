@@ -30,13 +30,17 @@ electorale mari.
 primei ședințe de după eveniment. În noiembrie 2024 minimul zilei a fost atins la 15 minute
 de la deschidere.
 
-\noindent\textbf{Magnitudinea.} Este mai mică decât o sugerează testul t. Am calibrat
-rezultatele cu un test placebo de 500 de pseudo-evenimente, aplicate aceluiași estimator.
-Distribuția nula a randamentului anormal cumulat pe trei ședințe are $\sigma = \NullSd\%$, iar
-$|CAR_3|$ la percentila 95 este $\NullPqfive\%$. O mișcare de 3\% peste trei ședințe se produce
-la BVB în $\NullFreqThree\%$ din cazuri, fără nicio știre politică. Dintre cele \NEvents{}
-evenimente, unul singur se separă de zgomot: victoria din turul al doilea al prezidențialelor
-($\TurTwoCar\%$, $p = \TurTwoP$).
+\noindent\textbf{Magnitudine, în două sensuri.} Am calibrat rezultatele cu un test placebo de
+500 de pseudo-evenimente, aplicate aceluiași estimator. Distribuția nula a randamentului
+anormal cumulat pe trei ședințe are $\sigma = \NullSd\%$, iar $|CAR_3|$ la percentila 95 este
+$\NullPqfive\%$: o mișcare de 3\% peste trei ședințe se produce la BVB în $\NullFreqThree\%$ din
+cazuri, fără nicio știre politică. Privite unul câte unul, doar trei dintre cele \NEvents{}
+evenimente trec pragul de 5\% (victoria din turul al doilea, $\TurTwoCar\%$, $p = \TurTwoP$,
+care se separă cel mai clar). Privite în ansamblu, însă, evenimentele politice se departă
+semnificativ de zgomotul obișnuit: modulul mediu al mișcării pe zile de eveniment este
+$\EvMeanAbs\%$ față de $\NullMeanAbs\%$ pe zile oarecare, cu $p = \AggP$ într-un test de
+permutare, iar $\AggObs$ evenimente trec percentila 95 față de $\AggExp$ așteptate doar din
+șansă.
 
 \noindent\textbf{Secțional.} Șocurile electorale mari sunt interne: STOXX Europe 600 a fost
 plat sau ușor pozitiv în zilele-cheie, în timp ce BET a divergit tare. Băncile absorb prima
@@ -59,12 +63,22 @@ daily quotes for the BET index, 8 liquid stocks and 4 complementary indices, plu
 \noindent\textbf{Speed.} Reactions to electoral shocks form at the open of the first session
 after the event; in November 2024 the intraday low came 15 minutes after the open.
 
-\noindent\textbf{Magnitude.} Smaller than the conventional t-test suggests. A placebo test of
-500 pseudo-events run through an identical estimator gives a null distribution of three-day
-cumulative abnormal returns with $\sigma = \NullSd\%$ and a 95th percentile of
-$\NullPqfive\%$. A 3\% move over three days occurs on roughly $\NullFreqThree\%$ of BVB sessions
-with no political news at all. Of the \NEvents{} events, only one separates from noise: the
-second-round presidential victory ($\TurTwoCar\%$, $p = \TurTwoP$).
+\noindent\textbf{Magnitude, in two senses.} Results are calibrated with a placebo test of 500
+pseudo-events run through an identical estimator. The null distribution of three-day
+cumulative abnormal returns has $\sigma = \NullSd\%$ and a 95th percentile of
+$\NullPqfive\%$, so a 3\% move over three days occurs on roughly $\NullFreqThree\%$ of BVB
+sessions with no political news at all. Read one at a time, only three of the \NEvents{}
+events clear the 5\% threshold (the second-round presidential victory, $\TurTwoCar\%$,
+$p = \TurTwoP$, being the clearest). Read in aggregate, however, political events do depart
+significantly from ordinary noise: mean absolute movement on event days is $\EvMeanAbs\%$
+against $\NullMeanAbs\%$ on ordinary days, $p = \AggP$ in a permutation test, with
+$\AggObs$ events above the 95th percentile against $\AggExp$ expected by chance alone.
+
+\noindent\textbf{Robustness.} Re-running the placebo test with four different estimation
+windows (40 to 250 sessions) leaves the ranking of events unchanged (rank correlation
+$\RhoWindow$), and restricting the null to the post-COVID regime gives a 95th percentile of
+$\PqPostCovid\%$, essentially the same as the full period: the fat tails are not an artifact
+of the pandemic.
 
 \noindent\textbf{Cross-section.} The large electoral shocks are domestic: STOXX Europe 600
 was flat or slightly positive on the event days while BET diverged sharply. Banks absorb the
@@ -214,19 +228,57 @@ politic este de ordinul a 4\%.
 \input{tables/tab_placebo}
 \end{table}
 
-Dintre \NEvents{} evenimente politice din șase ani și jumătate, unul singur se separă clar
-de zgomot: victoria din turul al doilea al prezidențialelor din mai 2025, cu
-$\TurTwoCar\%$ și $p = \TurTwoP$ (percentila $\TurTwoPct$). Trei sunt marginale, iar
-parlamentarele din decembrie 2024, la $p = \ParlP$, și turul întâi din 2025, la
-$p = \TurOneP$, sunt în interiorul distribuției normale, deși testul t clasic le-ar fi
-raportat drept semnificative.
+Dintre \NEvents{} evenimente politice din șase ani și jumătate, trei trec pragul de 5\%:
+victoria din turul al doilea al prezidențialelor din mai 2025, cu $\TurTwoCar\%$ și
+$p = \TurTwoP$ (percentila $\TurTwoPct$), anularea alegerilor de către CCR
+($\CcrCar\%$, $p = \CcrP$) și revizuirea perspectivei de către Fitch
+($-\FitchCar\%$, $p = \FitchP$). Parlamentarele din decembrie 2024, la $p = \ParlP$, rămân
+în interiorul distribuției normale, deși testul t clasic le-ar fi raportat drept
+semnificative.
+
+\subsection{Testul agregat: mișcă știrile politice piața, în ansamblu?}
+
+Testele per eveniment suferă de multiplicitate: cu \NEvents{} evenimente și un prag de 5\%,
+aproape unul ar trece din întâmplare. Testul agregat evită problema, fiindcă pune întrebarea
+direct: \emph{este modulul mediu al mișcării mai mare în zilele de eveniment decât în zilele
+obișnuite?}
+
+Pe cele \AggN{} ședințe distincte de eveniment, modulul mediu al lui $|CAR|$ este
+$\EvMeanAbs\%$, față de $\NullMeanAbs\%$ pe zile fara eveniment. Am comparat prin
+\AggPerm{} de permutări aleatoare din nulla, iar diferența are $p = \AggP$. Trei evenimente
+trec percentila 95, față de $\AggExp$ câte ar fi așteptate doar din șansă. Concluzia, în
+forma în care rezistă testelor: știrile politice produc la BVB mișcări mai mari decât zgomotul
+de fond, dar fiecare eveniment luat separat are o marjă de eroare prea mare pentru a fi
+distins de zgomot.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{../outputs/fig_placebo.png}
-\caption{Distribuția nula a CAR$[-1,+1]$ pe 500 de ședințe pseudo-aleatoare, cu evenimentele reale marcate.}
+\caption{Modulul mișcării pe zile de eveniment politic față de distribuția nula a zilelor fără eveniment.}
 \label{fig:placebo}
 \end{figure}
+
+\subsection{Sensibilitate: depinde concluzia de fereastra de estimare?}
+
+Fereastra de estimare $[-60,-11]$ a fost o alegere arbitrară, iar toată problema identificată
+mai sus provine din faptul că poate prinde un regim neobișnuit. Tabelul~\ref{tab:window}
+reia întregul test placebo cu patru ferestre, de la 40 la 250 de ședințe înaintea
+evenimentului.
+
+\begin{table}[H]
+\centering
+\caption{Rezultatele placebo în funcție de fereastra de estimare.}
+\label{tab:window}
+\input{tables/tab_window}
+\end{table}
+
+Identificarea evenimentelor care trec pragul nu se schimbă deloc, iar corelația de rang între
+ferestre este $\RhoWindow$, adică concluzia nu depinde de alegerea fereștrii. Doi factori
+merită totuși precizate. Numărul evenimentelor care ating 5\% crește de la trei la patru
+când fereastra se lungeste, fiindcă percentila 95 a nullei scade de la $\NullPqfive\%$ la
+aproximativ $3{,}4\%$. Iar calculul pe regimul post-COVID, excluzândRestrictionile din 2020
+și 2021, dă o percentilă 95 de $\PqPostCovid\%$, practic aceeași cu cea pe întreaga perioadă:
+cozile groase ale distribuției nu sunt un artefact al pandemiei.
 
 Explicația este una singură și verificabilă. Fereastra fixă de estimare capturează un regim
 liniștit, subestimează volatilitatea reală folosită ca denominator și umflă $|t|$ pentru toate
@@ -305,13 +357,14 @@ Puterea statistică este redusă prin construcție. Există \NEvents{} eveniment
 manual, iar calibrul placebo arată că pragul de detectabilitate la BVB este de ordinul a
 4\% pe trei ședințe, deci designul nu poate rezolva mai multe întrebări despre acest tip de
 efecte. Fereastra de estimare fixă nu conține prăbușirile anterioare, ceea ce umflă
-statisticile t și poate crea rebound-uri fantomă; o fereastră adaptivă sau un model cu
-coeficienți variabili în timp ar rezolva o parte din asta. Nu există serii oficiale de
-randament total pentru acțiunile individuale, deci BET-TR acoperă doar indicele, iar
-contaminarea de dividend rămâne posibilă la nivel de acțiune. Componența BET se schimbă în
-timp, iar coșul folosit aici este fix. RSS-ul acoperă doar prezentul, deci istoricul
-depinde de datare manuală, iar două evenimente au încredere medie. BVB este ilichidă, deci
-inferența intraday se sprijină pe zile cu rulaj mare.
+statisticile t și poate crea rebound-uri fantomă; tabelul~\ref{tab:window} arată că
+identificarea evenimentelor este stabilă la variația ferestrei, dar numărul celor care ating
+pragul de 5\% nu este. Nu există serii oficiale de randament total pentru acțiunile
+individuale, deci BET-TR acoperă doar indicele, iar contaminarea de dividend rămâne posibilă
+la nivel de acțiune. Componența BET se schimbă în timp, iar coșul folosit aici este fix.
+RSS-ul acoperă doar prezentul, deci istoricul depinde de datare manuală, iar două evenimente
+au încredere medie. BVB este ilichidă, deci inferența intraday se sprijină pe zile cu rulaj
+mare.
 
 Datele noastre reproduc întocmai cifrele din presa financiară: BET la 16.982 puncte și
 $-0{,}89\%$ pe 25 noiembrie 2024 \cite{bursa}, $-1{,}69\%$ intraday și $-0{,}5\%$ în a doua
@@ -322,23 +375,30 @@ zi din mai 2025 \cite{profit}, toți indicii pe roșu \cite{gandul,digi}.
 Politica românească mișcă BVB repede. Prețul de deschidere de luni este reacția, iar în
 noiembrie 2024 minimul zilei s-a atins la 15 minute de la deschidere. Distribuția pe
 sectoare e coerentă, băncile absorb prima lovitură și energia amortizează, iar șocurile
-electorale mari sunt demonstrabil interne. Acestea sunt observații solide și reproductibile.
+electorale mari sunt demonstrabil interne.
 
-Pe magnitudine, răspunsul e mai modest decât îl sugerau statisticile convenționale. Odată
-calibrat cu un placebo, un singur eveniment din \NEvents{} se separă de zgomot statistic. Nu
-pentru că știrile politice ar fi irelevante, ci pentru că la dimensiunea și lichiditatea
-acestei piețe mișcările obișnuite ale indicelui sunt de aceeași scară cu efectele pe care un
-event-study standard le raportează drept semnificative. Pentru un investitor, concluzia
-utilă e aceeași: ferestrele de reacție se deschid la ora 10:00 și se închid în minute, dar
-doar variațiile de procentaje întregi ies din zgomotul pieței.
+Pe magnitudine, răspunsul are două jumătăți, și prima e cea importantă. Privite în ansamblu,
+știrile politice produc la BVB mișcări mai mari decât zgomotul de fond, cu o diferență de
+$\EvMeanAbs\%$ față de $\NullMeanAbs\%$ în modulul mediu și $p = \AggP$. Privite unul câte
+unul, doar trei dintre \NEvents{} evenimente ating pragul de 5\%, iar unul dintre acestea
+este explicat de altceva decât politica, după cum arătăm mai sus. Un studiu de evenimente
+raportează rar mai mult de atât, iar diferența dintre un rezultat publicabil și unul
+greșit stă aici, în testul care nu se lasă înșelat de multiplicitate.
+
+Pentru un investitor, concluzia utilă e aceeași ca la început: ferestrele de reacție se
+deschid la ora 10:00 și se închid în minute. Ce se schimbă e citirea. Nu orice știre
+electorală merită poziție, ci variațiile de procentaje întregi, iar diferența dintre
+informația așteptată și cea primită e cea care se plătește.
 
 Contribuția metodologică e poate cea mai transferabilă. Fereastra de estimare fixă poate
-cădea într-un regim liniștit și poate umfla toate statisticile t simultan. O ajustare de
-preț care acoperă spliturile dar nu dividendele poate crea anomalii de două-trei puncte
-procentuale în plin sezon de dividende. Iar un control de piață calibrat calm poate
-transforma o zi de cădere globală într-un efect domestic fictiv. Toate trei au produs în
-această lucrare rezultate care, luate de bună credere, ar fi susținut concluzii greșite.
-Codul, datele, testul placebo și figurile sunt disponibile pentru replicare și extindere.
+cădea într-un regim liniștit și poate umfla toate statisticile t simultan; aici efectul s-a
+vizibilizat ca o diferență între trei evenimente semnificative și patru, în funcție de
+fereastră. O ajustare de preț care acoperă spliturile dar nu dividendele poate crea
+anomalii de două-trei puncte procentuale în plin sezon de dividende. Iar un control de piață
+calibrat calm poate transforma o zi de cădere globală într-un efect domestic fictiv. Toate
+trei au produs în această lucrare rezultate care, luate de bună credere, ar fi susținut
+concluzii greșite. Codul, datele, testul placebo și figurile sunt disponibile pentru
+replicare și extindere.
 
 \appendix
 \section{Evenimentele analizate}

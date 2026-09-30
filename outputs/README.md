@@ -2,43 +2,40 @@
 
 Rulare completă: `python fetch_bvb.py --from 2020-01-01 && python fetch_bench.py --from 2020-01-01 && python fetch_news.py && python analyze.py && python placebo.py && python make_tables.py && python fetch_intraday.py && python check.py && (cd paper && pdflatex paper.tex)`
 
-## Răspunsul pe scurt ( versiunea calibrată placebo)
+## Răspunsul pe scurt (versiune calibrată placebo)
 
 **1. Viteza: șocul se vede la deschidere, în primele 15 minute.** Nemodificat — aceasta e
 observația solidă a studiului. Gap-uri la open: −1,57% (25 nov 2024), −2,13% (5 mai 2025),
 +4,12% (19 mai 2025); minimul din noiembrie a fost atins la 10:15, la 15 minute de la open.
 
-**2. Magnitudinea: mult mai puțină decât sugera testul t.** Un test placebo (500 de
-pseudo-evenimente, același estimator, excluzând vecinii evenimentelor reale) arată că
-distribuția nula a CAR[−1,+1] la BVB are **sd = 1,92%** și **|CAR3| p95 = 3,98%**.
-**Un CAR de 3% peste 3 zile se întâmplă în ~10% din cazuri fără nicio știre politică.**
-Prin urmare, dintre 24 de evenimente politice din 6,5 ani, **doar unul se separă clar de zgomot**:
+**2. Magnitudinea are două jumătăți, și cea importantă e cea pozitivă.**
 
-| eveniment | CAR3 (BET-TR) | p empiric | verdict |
-|---|---|---|---|
-| tur2_2025 (victorie Dan) | **+6,94%** | **0,016** | se separă de null |
-| ccr_anulare_2024 | +4,34% | 0,042 | marginal, dar rebound pre-existent (vezi mai jos) |
-| fitch_negativ_2024 | −4,31% | 0,044 | marginal; eveniment cu încredere medie |
-| parlamentare_2024 | −3,74% | 0,062 | **nu semnificativ** (t-ul spunea −3,71**) |
-| tur1_2025 (+demisie) | −3,50% | 0,074 | **nu semnificativ** |
-| guvern_ciuca_2021 | −2,60% | 0,126 | **nu semnificativ** |
+*Unul câte unul*, trei dintre 24 de evenimente trec pragul de 5% (tur2_2025 +6,94% p=0,014;
+ccr_anulare_2024 +4,34% p=0,038; fitch_negativ_2024 −4,31% p=0,040). *În ansamblu*, mișcările
+sunt semnificativ mai mari decât zgomotul: |CAR| mediu **2,00% pe zile de eveniment vs
+1,38% pe zile oarecare, p = 0,026** (test de permutare, 20.000 rulări), cu 3 evenimente peste
+p95 față de 1,1 așteptate din șansă. Concluzia care rezistă: **politica mișcă BVB, dar
+marja de eroare a fiecărui eveniment luat separat e prea mare ca să-l distingi de zgomot.**
 
-Testele t clasice (CAR/(σ_estimare·√T)) sunt **excesiv de optimiste** aici: fereastra fixă
-[−60,−11] capturează o perioadă liniștită și subestimează atât media, cât și volatilitatea
-reale, ceea ce umflă statisticile t ale tuturor evenimentelor. Placebo-ul este imun la asta
-pentru că eșargește din întreaga perioadă. **Aceasta e cea mai importantă lecție metodologică
-a proiectului.**
+Calibrul: null-ul are σ = 1,94%, |CAR₃| p95 = 3,98%. **Un CAR de 3% peste 3 ședințe apare
+în ~10% din ședințe fără nicio știre politică.**
 
-**3. Șocurile electorale 2024–2025 sunt pur interne.** STOXX 600 a fost plat/ușor pozitiv în
-zilele-cheie (+0,06% / +0,16% / +0,13%) în timp ce BET a divergat tare. Vibrația rămâne
-corectă, dar **nu** ca dovadă de efect intern prin rezidualul de model — vezi punctul 6.
+**3. Robustizare.** Re-rulând placebo-ul pe patru ferestre de estimare (−250, −120, −60,
+−40), **identificarea evenimentelor nu se schimbă deloc** (ρ = 1,000). Singura diferență: la
+ferestre mai lungi p95 scade la ~3,4%, iar patru evenimente ating 5% în loc de trei — deci
+numărul e sensibil, ordinea nu. Null-ul calculat doar pe regimul post-COVID dă p95 = 4,00%,
+practic identic: cozile groase nu sunt artefact de pandemie.
 
-**4. Distribuția pe acțiuni și sectoare (neschimbată, descriptive).** Băncile absorb prima
+**4. Șocurile electorale 2024–2025 sunt pur interne.** STOXX 600 a fost plat/pozitiv în
+zilele-cheie (+0,06% / +0,16% / +0,13%) în timp ce BET a divergat tare — dar **nu** ca dovadă
+prin rezidualul de model, vezi punctul 6.
+
+**5. Distribuția pe acțiuni și sectoare (neschimbată, descriptivă).** Băncile absorb prima
 lovitură (TLV −4,11% într-o zi), financiarul amplifică (BET-FI −4,51%), energia amortizează
 (BET-NG −2,82%).
 
-**5. Evenimentele anticipate nu mișcă piața.** Moțiunea care a demis guvernul Cîțu cu 281 de
-voturi: CAR −0,19% (p=0,9+); parlamentarele 2020: −0,18%. Coaliția era publică înainte de vot.
+**6. Evenimentele anticipate nu mișcă piața.** Moțiunea care a demis guvernul Cîțu cu 281 de
+voturi: CAR −0,19%; parlamentarele 2020: −0,18%. Coaliția era publică înainte de vot.
 
 ## Cele trei „anomalii" — toate trei sunt eșecuri de măsurare, nu puzzle-uri de piață
 
@@ -80,6 +77,12 @@ trio-ul electoral este **retractat**: era un artefact al aceleiași ferestre de 
 ## Limitări oneste
 
 - **Putere statistică redusă prin construcție.** n=24 evenimente datate manual, din care
+  multe în afara sezonului electoral. Pragul de detectabilitate la BVB e ≈ 4% pe 3 zile; doar
+  evenimentele mari se văd individual. De aceea testul agregat e cel care poartă concluzia.
+- **Numărul evenimentelor semnificative depinde de fereastră** (3 sau 4 din 24), deși
+  identitatea lor nu depinde. Raportat explicit, nu ascuns.
+
+- **Putere statistică redusă prin construcție.** n=24 evenimente datate manual, din care
   multe în afara sezonului electoral. Placebo-ul arată că pragul de detectabilitate la BVB
   e ≈ 4% pe 3 zile; doar evenimentele mari se văd.
 - **Ferestre fixe, regimuri diferite.** Estimarea [−60,−11] nu conține crash-urile anterioare,
@@ -101,8 +104,14 @@ trio-ul electoral este **retractat**: era un artefact al aceleiași ferestre de 
   pipeline: RSS acoperă doar prezentul, iar istoricul e datat manual în `events.csv`
 - `events.csv` — 24 evenimente (2020–2025) cu scope/expected/in_grup/confidence
 - `analyze.py` → `event_table.csv` (include `car3_tr`, `t3_tr`, `contaminat_dividend`), `group_test.csv`, 4 figuri
-- `placebo.py` (`--n`, `--seed`) → `placebo_null.csv`, `placebo_results.csv`, `fig_placebo.png` — **calibrarea care dictează concluzia**
+- `placebo.py` (`--n`, `--seed`, `--perm`) → `placebo_{null,results,summary}.csv`, `fig_placebo.png` — **calibrarea care dictează concluzia**
 - `make_tables.py` → `paper/tables/*.tex` + `macros.tex`; **toate cifrele din lucrare vin de aici**, deci nu se pot dezacordea cu datele
 - `fetch_intraday.py` — 15min pe 3 șocuri → `data/intraday_15m.csv`, `fig_intraday_*.png`
-- `check.py` — 24 check-uri (toate trec), inclusiv auto-detectia contaminării, calibrul placebo, generarea tabelelor
-- `paper/` — research paper LaTeX → `paper.pdf` (8 pagini); `pdflatex paper.tex` de două ori
+- `check.py` — 32 check-uri (toate trec), inclusiv auto-detectia contaminării, calibrul placebo, testul agregat, sensibilitatea la fereastră, și faptul că niciun `\Macro` folosit în `paper.tex` nu e nedefinit
+- `paper/` — research paper LaTeX → `paper.pdf` (9 pagini); `pdflatex paper.tex` de două ori
+
+## Notă de arhitectură
+
+`placebo.py` **importă** estimatorul din `analyze.py` (`abnormal`), deci placebo-ul și studiul
+nu pot diverge prin construcție. `WINDOWS` din `analyze.py` e folosit și pentru testul de
+sensibilitate. Dacă schimbi estimatorul, ambele se schimbă împreună.

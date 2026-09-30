@@ -26,6 +26,21 @@ OUT.mkdir(exist_ok=True)
 RO = ZoneInfo("Europe/Bucharest")
 STOCKS = ["TLV", "SNP", "BRD", "H2O", "SNG", "DIGI", "TEL", "SNN"]
 INDICES = ["ROTX", "BET-TR", "BET-FI", "BET-NG"]
+EST_LO, EST_HI = -60, -10   # fereastra de estimare [-60,-11]
+WINDOWS = [(-250, -10), (-120, -10), (-60, -10), (-40, -10)]  # pentru testul de sensibilitate
+PRIMARY = "BET-TR"          # randament total; vezi caveat-ul despre dividende
+NEIGHBOUR = 3               # excludem zilele apropiate de evenimente reale din nula
+
+def abnormal(rets, pos, est=(EST_LO, EST_HI)):
+    """CAR pe fereastra [-1,+1] si statistica t asociata. SINGURA sursa de adevar
+    pentru estimator: placebo.py importa asta, deci placebo-ul nu poate divergea
+    prin constructie. `est` e parametrizat ca placebo.py sa poata verifica daca
+    concluzia depinde de alegerea arbitrara a ferestrei de estimare."""
+    p = max(pos, -est[0])
+    win = rets.iloc[p + est[0]:p + est[1]]
+    car = float(rets.iloc[pos - 1:pos + 2].sum() - 3 * win.mean())
+    sd = win.std()
+    return car, (car / (sd * np.sqrt(3)) if sd and sd > 0 else np.nan)
 
 def load_prices():
     df = pd.read_csv(DATA / "prices_daily.csv", parse_dates=["date"])

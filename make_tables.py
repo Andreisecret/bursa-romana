@@ -42,6 +42,7 @@ def main():
     t = pd.read_csv(OUT / "event_table.csv", parse_dates=["zi_tranzactionare"])
     p = pd.read_csv(OUT / "placebo_results.csv")
     g = pd.read_csv(OUT / "group_test.csv")
+    s = pd.read_csv(OUT / "placebo_summary.csv").iloc[0]
     ev = pd.read_csv(ROOT / "events.csv")
     intra = pd.read_csv(ROOT / "data" / "intraday_15m.csv", parse_dates=["ts_ro"])
     null = pd.read_csv(OUT / "placebo_null.csv")["pseudo_car3_tr_pct"]
@@ -74,12 +75,23 @@ def main():
         "CcrCar": num(p[p.event_id == "ccr_anulare_2024"].car3_tr.iloc[0]),
         "CcrP": num(p[p.event_id == "ccr_anulare_2024"].p_empilateric.iloc[0], 3),
         "CcrArZero": num(t[t.event_id == "ccr_anulare_2024"].bet_ar0.iloc[0]),
+        "FitchCar": num(p[p.event_id == "fitch_negativ_2024"].car3_tr.iloc[0]),
+        "FitchP": num(p[p.event_id == "fitch_negativ_2024"].p_empilateric.iloc[0], 3),
         "NegMean": num(g[g.grup == "negativ"].mean_car3_tr.iloc[0]),
         "NegN": str(int(g[g.grup == "negativ"].n.iloc[0])),
         "TrioMean": num(t[t.event_id.isin(["tur1_2024", "parlamentare_2024", "tur1_2025"])].bet_car3.mean()),
         "TlvMay": num(r.loc["2025-05-05", "TLV"]), "BetMay": num(r.loc["2025-05-05", "BET"]),
         "BetFiMay": num(t[t.event_id == "tur1_2025"]["BET-FI_car3"].iloc[0]),
         "NEvents": str(len(t)),
+        # testul agregat (nu sufera de multiplicitate)
+        "AggP": num(s.p_agregat, 3), "AggPerm": str(int(s.p_perm)),
+        "EvMeanAbs": num(s.ev_mean_abs), "NullMeanAbs": num(s.null_mean_abs),
+        "AggObs": str(int(s.exceed_observed)), "AggExp": num(s.exceed_expected, 1),
+        "AggN": str(int(s.n_events)),
+        # sensibilitate la fereastra de estimare
+        "RhoWindow": num(s.rho_fereastra_min, 3),
+        "PqPostCovid": num(s.null_p95_postcovid),
+        "NPfivePostCovid": str(int(s.n_p05_postcovid)),
     }
     # TeX citeste un control word doar pana la primul caracter non-litera, deci
     # \NullP95 ar fi parsat ca \NullP urmat de "95" -> undefined. Prindem aici.
@@ -163,6 +175,20 @@ def main():
           "{\\footnotesize\\setlength{\\tabcolsep}{4pt}\n"
           "\\begin{tabular}{lrrrl}\n\\toprule\n"
           "Eveniment & CAR$_3$ & $t$ clasic & $p$ empiric & Verdict placebo \\\\\n\\midrule\n"
+          + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
+
+    # ---- tabel: sensibilitate la fereastra de estimare -------------------------
+    import analyze as A
+    rows = []
+    for w in A.WINDOWS:
+        v = p[f"p_w{w[1]}"].dropna()
+        hit = p.loc[v[v < 0.05].index, "event_id"].str.replace("_", " ")
+        rows.append(f"$[{w[0]},\\;{-w[1]}]$ & {len(v)} & {len(hit)} & "
+                    f"{', '.join(hit) if len(hit) else '--'} \\\\")
+    write("tab_window.tex",
+          "{\\footnotesize\\setlength{\\tabcolsep}{4pt}\n"
+          "\\begin{tabular}{lrll}\n\\toprule\n"
+          "Fereastră de estimare & $n$ & $p<0{,}05$ & Evenimente \\\\\n\\midrule\n"
           + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
 
     print(f"OK -> paper/tables/ ({len(list(TAB.glob('*.tex')))} fisiere, {len(ev)} evenimente)")

@@ -117,11 +117,45 @@ print(f"{'OK ' if ok else 'FAIL'} {len(names)} macro-uri, toate doar litere" +
       (f" (OFENDE: {bad})" if bad else ""))
 if not ok:
     fails.append("macro_nume")
-# cifrarele-cheie din prosa trebuie sa existe ca macro, nu scrise manual
-for need in ["NullSd", "NullPqfive", "TurTwoCar", "TurTwoP", "LocaleTr", "CiucaStoxx"]:
+# cifrele-cheie din prosa trebuie sa existe ca macro, nu scrise manual
+for need in ["NullSd", "NullPqfive", "TurTwoCar", "TurTwoP", "LocaleTr", "CiucaStoxx",
+             "AggP", "EvMeanAbs", "NullMeanAbs", "RhoWindow", "PqPostCovid"]:
     ok = f"\\{need}" in mac
     print(f"{'OK ' if ok else 'FAIL'} macro prezent: \\{need}")
     if not ok:
         fails.append(need)
+# ...si niciun \\Macro folosit in paper.tex sa nu fie nedefinit
+tex = (ROOT / "paper" / "paper.tex").read_text(encoding="utf-8")
+used = set(re.findall(r"\\([A-Z][A-Za-z]*)", tex))
+known = set(names) | {"N", "LaTeX", "TeX", "URL"}
+undef = sorted(used - known)
+ok = not undef
+print(f"{'OK ' if ok else 'FAIL'} {len(used)} macro-uri folosite in paper.tex, toate definite" +
+      (f" (OFENDE: {undef})" if undef else ""))
+if not ok:
+    fails.append("macro_nefolosit")
+
+# 13. testul agregat: efectele politice se departa de zgomot in ansamblu
+s = pd.read_csv(ROOT / "outputs" / "placebo_summary.csv").iloc[0]
+ok = s.p_agregat < 0.05 and s.ev_mean_abs > s.null_mean_abs
+print(f"{'OK ' if ok else 'FAIL'} test agregat: |CAR| mediu evenimente {s.ev_mean_abs:.2f}% "
+      f"vs {s.null_mean_abs:.2f}% zile oarecare, p = {s.p_agregat:.3f} (<0.05)")
+if not ok:
+    fails.append("agregat")
+# 14. sensibilitate: rangul evenimentelor nu depinde de fereastra de estimare
+ok = s.rho_fereastra_min > 0.9
+print(f"{'OK ' if ok else 'FAIL'} sensibilitate la fereastra: rho minim = "
+      f"{s.rho_fereastra_min:.3f} (>0.9)")
+if not ok:
+    fails.append("sensibilitate")
+# 15. null-ul post-COVID confirma ca cozile nu sunt artefact de pandemie
+ok = abs(s.null_p95_postcovid - s.null_p95) < 0.3
+print(f"{'OK ' if ok else 'FAIL'} p95 post-COVID {s.null_p95_postcovid:.2f}% vs "
+      f"intreg {s.null_p95:.2f}% (diferenta <0.3pp)")
+if not ok:
+    fails.append("postcovid")
+for f in ["outputs/placebo_summary.csv", "paper/tables/tab_window.tex"]:
+    if not (ROOT / f).exists():
+        fails.append(f)
 
 raise SystemExit(1 if fails else print("TOATE CHECK-URILE TREC"))
