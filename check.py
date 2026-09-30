@@ -110,7 +110,7 @@ for f in ["macros.tex", "tab_events.tex", "tab_main.tex", "tab_speed.tex",
     if not ok:
         fails.append(f)
 mac = (ROOT / "paper" / "tables" / "macros.tex").read_text(encoding="utf-8")
-names = re.findall(r"\\newcommand\{\\([^}]+)\}", mac)
+names = re.findall(r"\\(?:new|provide)command\{\\([^}]+)\}", mac)
 bad = [n for n in names if not n.isalpha()]   # TeX: cifrele taie control word-ul
 ok = not bad
 print(f"{'OK ' if ok else 'FAIL'} {len(names)} macro-uri, toate doar litere" +
@@ -157,5 +157,30 @@ if not ok:
 for f in ["outputs/placebo_summary.csv", "paper/tables/tab_window.tex"]:
     if not (ROOT / f).exists():
         fails.append(f)
+
+# 16. lucrarea si tabelele sunt integral in engleza (fara resturi de romana)
+tex_all = tex + "".join((ROOT / "paper" / "tables" / f).read_text(encoding="utf-8")
+                        for f in ["tab_events.tex", "tab_speed.tex", "tab_idx.tex",
+                                  "tab_placebo.tex", "tab_window.tex", "tab_main.tex"])
+RO_MARK = ["Incredere", "Eveniment", "Șoc ", "Ziua", "Tipar", "cheie", "încredere",
+           "evenimentele", "Fereastră", "separam", "se separă", "randament total",
+           "zile distincte", "clasic & $p$ empiric", "NESEMNIF"]
+hits = [w for w in RO_MARK if w in tex_all]
+ok = not hits
+print(f"{'OK ' if ok else 'FAIL'} paper + tabele fara resturi de romana" +
+      (f" (OFENDE: {hits})" if hits else ""))
+if not ok:
+    fails.append("limba_romana")
+# ...si figurile: titlurile din PNG-uri sunt desenate de cod, nu de LaTeX
+fig_src = (ROOT / "analyze.py").read_text(encoding="utf-8") + \
+          (ROOT / "placebo.py").read_text(encoding="utf-8") + \
+          (ROOT / "fetch_intraday.py").read_text(encoding="utf-8")
+leaked = [w for w in ["viteza", "socului", "rebazat", "frecventa", "nula (",
+                      "chiar fara", "evenimente politice ("] if w in fig_src]
+ok = not leaked
+print(f"{'OK ' if ok else 'FAIL'} etichete de figura in engleza" +
+      (f" (OFENDE: {leaked})" if leaked else ""))
+if not ok:
+    fails.append("limba_figuri")
 
 raise SystemExit(1 if fails else print("TOATE CHECK-URILE TREC"))

@@ -18,16 +18,54 @@ def num(x, d=2):
         return "--"
     return f"{x:.{d}f}".replace(".", "{,}")
 
-LUNI = ["ian", "feb", "mar", "apr", "mai", "iun",
-        "iul", "aug", "sep", "oct", "noi", "dec"]
+MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-def date_ro(x):
-    d = pd.Timestamp(x)
-    return f"{d.day} {LUNI[d.month - 1]} {d.year}"
+# Etichetele evenimentelor, in engleza, cu anul, ca sa nu confunde tur1_2024 cu
+# tur1_2025 intr-un tabel. Sursa ramane events.csv, in romana; traducerea sta aici
+# ca sa nu se strica daca se regenereaza tabelele.
+EN = {
+    "covid_urgenta_2020": "COVID state of emergency",
+    "locale_2020": "Local elections 2020",
+    "parlamentare_2020": "Parliamentary elections 2020",
+    "demisie_orban_2020": "Orban resignation 2020",
+    "guvern_citu_2020": "Citu I government formed",
+    "criza_stelian_2021": "Stelian Ion crisis 2021",
+    "motiune_citu_2021": "No-confidence motion 2021",
+    "guvern_ciuca_2021": "Ciuca government formed 2021",
+    "invazie_2022": "Russian invasion of Ukraine",
+    "rotativa_ciolacu_2023": "Ciolacu rotation government 2023",
+    "ipo_h2o_2023": "Hidroelectrica IPO listing 2023",
+    "locale_euro_2024": "Local + European elections 2024",
+    "tur1_2024": "Presidential first round 2024",
+    "parlamentare_2024": "Parliamentary elections 2024",
+    "ccr_anulare_2024": "Constitutional Court annulment 2024",
+    "schengen_2024": "Schengen land accession 2024",
+    "fitch_negativ_2024": "Fitch outlook to negative 2024",
+    "guvern_ciolacu2_2024": "Ciolacu II government formed 2024",
+    "bec_respinge_2025": "BEC rejects Georgescu 2025",
+    "tur1_2025": "Presidential first round 2025",
+    "demisie_ciolacu_2025": "Ciolacu resignation 2025",
+    "tur2_2025": "Presidential second round 2025",
+    "guvern_bolojan_2025": "Bolojan government formed 2025",
+    "pachet_fiscal_2025": "Fiscal package (VAT rise) 2025",
+}
+TIP_EN = {"alegeri": "election", "guvern": "government", "ccr": "court",
+          "ccr-alegeri": "court/election", "motiune": "no-confidence",
+          "rating": "rating", "fiscal": "fiscal", "extern": "external",
+          "sanatate": "health", "piata": "market"}
+CONF_EN = {"ridicata": "high", "medie": "medium"}
 
-def date_short(x):
+def label(eid):
+    return EN.get(eid, eid.replace("_", " "))
+
+def fmt_date(x):
     d = pd.Timestamp(x)
-    return f"{d.day} {LUNI[d.month - 1]}"
+    return f"{d.day} {MONTHS[d.month - 1]} {d.year}"
+
+def fmt_day(x):
+    d = pd.Timestamp(x)
+    return f"{d.day} {MONTHS[d.month - 1]}"
 
 def stars(t):
     if not np.isfinite(t):
@@ -97,18 +135,20 @@ def main():
     # \NullP95 ar fi parsat ca \NullP urmat de "95" -> undefined. Prindem aici.
     bad = [k for k in macros if not k.isalpha()]
     assert not bad, f"numele de macro TeX trebuie sa fie doar litere: {bad}"
+    # \providecommand, nu \newcommand: un \input accidental de doua ori nu trebuie
+    # sa facă compilarea să moară.
     write("macros.tex", "".join(
-        f"\\newcommand{{\\{k}}}{{{v}}}\n" for k, v in macros.items()))
+        f"\\providecommand{{\\{k}}}{{{v}}}\n" for k, v in macros.items()))
 
     # ---- tabel: evenimente ----------------------------------------------------
     rows = []
     for _, e in ev.iterrows():
         ed = t[t.event_id == e.event_id]
-        d0 = date_ro(ed.zi_tranzactionare.iloc[0]) if len(ed) else "--"
-        rows.append(f"{e.event_id.split('_')[0].replace('_',' ')} & {e.tip} & "
-                    f"{d0} & {e.confidence} \\\\")
+        d0 = fmt_date(ed.zi_tranzactionare.iloc[0]) if len(ed) else "--"
+        rows.append(f"{label(e.event_id)} & {TIP_EN.get(e.tip, e.tip)} & "
+                    f"{d0} & {CONF_EN.get(e.confidence, e.confidence)} \\\\")
     write("tab_events.tex",
-          "\\begin{tabular}{lllc}\n\\toprule\nEveniment & Tip & Ziua 0 & Încredere \\\\\n"
+          "\\begin{tabular}{lllc}\n\\toprule\nEvent & Type & Day 0 & Confidence \\\\\n"
           "\\midrule\n" + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
 
     # ---- tabel: efectele principale (BET, randament de pret) -------------------
@@ -116,15 +156,15 @@ def main():
     rows = []
     for eid in majors:
         r_ = t[t.event_id == eid].iloc[0]
-        d0 = date_short(r_.zi_tranzactionare)
-        rows.append(f"{eid.replace('_',' ')} & {d0} & "
+        d0 = fmt_day(r_.zi_tranzactionare)
+        rows.append(f"{label(eid)} & {d0} & "
                     f"${num(r_.bet_ar0)}{stars(r_.bet_t0)}$ & "
                     f"${num(r_.bet_car3)}{stars(r_.bet_t3)}$ & "
                     f"${num(r_.bet_car11)}$ & ${num(r_.betx_car3)}$ \\\\")
     write("tab_main.tex",
           "{\\footnotesize\\setlength{\\tabcolsep}{3pt}\n"
           "\\begin{tabular}{lrrrrr}\n\\toprule\n"
-          "Eveniment & Ziua $0$ & $AR_0$ & CAR$[-1,+1]$ & CAR$[-5,+5]$ & Net STOXX \\\\\n"
+          "Event & Day $0$ & $AR_0$ & CAR$[-1,+1]$ & CAR$[-5,+5]$ & Net STOXX \\\\\n"
           "\\midrule\n" + "\n".join(rows) +
           "\n\\bottomrule\n\\end{tabular}}\n")
 
@@ -140,41 +180,41 @@ def main():
         mn = (d0.close.min() / pre - 1) * 100
         tmin = pd.Timestamp(d0.loc[d0.close.idxmin(), "ts_ro"]).strftime("%H:%M")
         close = (d0.close.iloc[-1] / pre - 1) * 100
-        pat = {"2024-11-25": "șoc instant + recuperare",
-               "2025-05-05": "degradare toată ziua",
-               "2025-05-19": "câștig instant"}[shock]
-        rows.append(f"{name.replace('_',' ')} & ${num(gap)}\\%$ & ${num(mn)}\\%$ ({tmin}) & "
+        pat = {"2024-11-25": "instant shock, partial recovery",
+               "2025-05-05": "degraded all day",
+               "2025-05-19": "instant gain"}[shock]
+        rows.append(f"{label(name)} & ${num(gap)}\\%$ & ${num(mn)}\\%$ ({tmin}) & "
                     f"${num(close)}\\%$ & {pat} \\\\")
     write("tab_speed.tex",
-          "{\\small\\setlength{\\tabcolsep}{4pt}\n"
-          "\\begin{tabular}{lrrrl}\n\\toprule\n"
-          "Șoc & Gap open & Minim (ora RO) & Închidere & Tipar \\\\\n\\midrule\n"
+          "{\\footnotesize\\setlength{\\tabcolsep}{3.5pt}\n"
+          "\\begin{tabular}{p{4.4cm}rrr p{3.4cm}}\n\\toprule\n"
+          "Shock & Opening gap & Intraday low (local) & Close & Pattern \\\\\n\\midrule\n"
           + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
 
     # ---- tabel: comparatie indici (randament total) ---------------------------
     rows = []
     for eid in majors:
         r_ = t[t.event_id == eid].iloc[0]
-        rows.append(f"{eid.replace('_',' ')} & ${num(r_.car3_tr)}$ & ${num(r_['ROTX_car3'])}$ & "
+        rows.append(f"{label(eid)} & ${num(r_.car3_tr)}$ & ${num(r_['ROTX_car3'])}$ & "
                     f"${num(r_['BET-FI_car3'])}$ & ${num(r_['BET-NG_car3'])}$ \\\\")
     write("tab_idx.tex",
           "\\begin{tabular}{lrrrr}\n\\toprule\n"
-          "Eveniment & BET-TR & ROTX & BET-FI & BET-NG \\\\\n\\midrule\n"
+          "Event & BET-TR & ROTX & BET-FI & BET-NG \\\\\n\\midrule\n"
           + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
 
     # ---- tabel: placebo -------------------------------------------------------
     rows = []
     for _, r_ in p.head(7).iterrows():
-        verdict = ("se separă de null" if r_.p_empilateric < 0.05 else
-                   "marginal" if r_.p_empilateric < 0.10 else "nesemnificativ")
+        verdict = ("clears the null" if r_.p_empilateric < 0.05 else
+                   "marginal" if r_.p_empilateric < 0.10 else "not significant")
         if r_.contaminat_dividend:
-            verdict = "nesemnificativ (corectat: dividend)"
-        rows.append(f"{r_.event_id.replace('_',' ')} & ${num(r_.car3_tr)}$ & "
+            verdict = "not significant (corrected: dividend)"
+        rows.append(f"{label(r_.event_id)} & ${num(r_.car3_tr)}$ & "
                     f"${num(r_.t)}{stars(r_.t)}$ & ${num(r_.p_empilateric,3)}$ & {verdict} \\\\")
     write("tab_placebo.tex",
           "{\\footnotesize\\setlength{\\tabcolsep}{4pt}\n"
           "\\begin{tabular}{lrrrl}\n\\toprule\n"
-          "Eveniment & CAR$_3$ & $t$ clasic & $p$ empiric & Verdict placebo \\\\\n\\midrule\n"
+          "Event & CAR$_3$ & conventional $t$ & empirical $p$ & Placebo verdict \\\\\n\\midrule\n"
           + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
 
     # ---- tabel: sensibilitate la fereastra de estimare -------------------------
@@ -182,13 +222,13 @@ def main():
     rows = []
     for w in A.WINDOWS:
         v = p[f"p_w{w[1]}"].dropna()
-        hit = p.loc[v[v < 0.05].index, "event_id"].str.replace("_", " ")
+        hit = p.loc[v[v < 0.05].index, "event_id"].map(label)
         rows.append(f"$[{w[0]},\\;{-w[1]}]$ & {len(v)} & {len(hit)} & "
                     f"{', '.join(hit) if len(hit) else '--'} \\\\")
     write("tab_window.tex",
           "{\\footnotesize\\setlength{\\tabcolsep}{4pt}\n"
-          "\\begin{tabular}{lrll}\n\\toprule\n"
-          "Fereastră de estimare & $n$ & $p<0{,}05$ & Evenimente \\\\\n\\midrule\n"
+          "\\begin{tabular}{lrl p{9.6cm}}\n\\toprule\n"
+          "Estimation window & $n$ & $p<0{,}05$ & Events \\\\\n\\midrule\n"
           + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
 
     print(f"OK -> paper/tables/ ({len(list(TAB.glob('*.tex')))} fisiere, {len(ev)} evenimente)")

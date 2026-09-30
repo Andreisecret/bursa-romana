@@ -181,7 +181,7 @@ def main():
     ax.plot(px.index, px["BET"], lw=1.2)
     for _, r in tab[tab.confidence == "ridicata"].iterrows():
         ax.axvline(pd.Timestamp(r["zi_tranzactionare"]), color="r", alpha=0.45, ls="--", lw=1)
-    ax.set_title("BET 2020-2026 + evenimente politice (linii rosii = incredere ridicata)")
+    ax.set_title("BET 2020-2026 with political events (red lines = high confidence)")
     ax.xaxis.set_major_locator(mdates.MonthLocator(interval=3))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
     fig.autofmt_xdate(); fig.tight_layout()
@@ -199,9 +199,9 @@ def main():
         for k, v in cars.items():
             ax2.plot(range(-5, 6), v, marker="o", ms=3, label=k)
         ax2.axhline(0, color="k", lw=0.8); ax2.axvline(0, color="k", ls=":", lw=0.8)
-        ax2.set_xlabel("zile fata de eveniment (0 = ziua de tranzactionare)")
-        ax2.set_ylabel("CAR % cumulativ vs media")
-        ax2.set_title("Viteza reactiei BET: CAR [-5,+5] per eveniment")
+        ax2.set_xlabel("trading days from event (0 = event day)")
+        ax2.set_ylabel("cumulative CAR % vs mean")
+        ax2.set_title("Speed of the BET response: CAR [-5,+5] by event")
         ax2.legend(fontsize=7, ncol=2)
         fig2.tight_layout(); fig2.savefig(OUT / "fig_car_paths.png", dpi=130)
 
@@ -214,7 +214,7 @@ def main():
     ax3.plot(px.index, sx / sx.loc[base] * 100, label="STOXX600", lw=1.1, alpha=0.8)
     for _, r in tab[(tab.confidence == "ridicata") & (tab.semnificativ)].iterrows():
         ax3.axvline(pd.Timestamp(r["zi_tranzactionare"]), color="r", alpha=0.35, ls="--", lw=1)
-    ax3.set_title("BET vs STOXX600 (2020-01=100): socurile politice RO decupleaza de Europa")
+    ax3.set_title("BET vs STOXX600 (2020-01=100): Romanian political shocks decouple from Europe")
     ax3.legend(); fig3.autofmt_xdate(); fig3.tight_layout()
     fig3.savefig(OUT / "fig_bet_vs_stoxx.png", dpi=130)
 
@@ -228,7 +228,7 @@ def main():
             ax4.bar(x + i * w, majors[c].values, w, label=c.replace("_car3", ""))
         ax4.set_xticks(x + 1.5 * w); ax4.set_xticklabels(majors["event_id"].values, rotation=12, fontsize=8)
         ax4.set_ylabel("CAR[-1,+1] %"); ax4.axhline(0, color="k", lw=0.8)
-        ax4.set_title("Cine reactioneaza mai tare? BET vs ROTX vs financiar (BET-FI) vs energie (BET-NG)")
+        ax4.set_title("Who reacts hardest? BET vs ROTX vs financials (BET-FI) vs energy (BET-NG)")
         ax4.legend(fontsize=8); fig4.tight_layout()
         fig4.savefig(OUT / "fig_indices_car3.png", dpi=130)
     print(f"OK -> event_table.csv + group_test.csv + 4 figuri")

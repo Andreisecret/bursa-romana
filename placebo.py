@@ -161,20 +161,20 @@ def main():
     print(res.head(10).to_string(index=False))
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.hist(null_pct, bins=40, color="#9bb", alpha=0.75, label=f"nula (N={len(null_pct)})")
+    ax.hist(null_pct, bins=40, color="#9bb", alpha=0.75, label=f"null (N={len(null_pct)})")
     ax.hist(np.abs(ev_car), bins=20, color="#d66", alpha=0.8,
-            label=f"evenimente politice (N={k})")
+            label=f"political event days (N={k})")
     for q, c in [(0.05, "orange"), (0.95, "orange")]:
-        ax.axvline(np.quantile(null_pct, q), color=c, ls=":", lw=1, label="p5 / p95 nula")
+        ax.axvline(np.quantile(null_pct, q), color=c, ls=":", lw=1, label="p5 / p95 of null")
     for _, r in res[res.p_empilateric < 0.05].iterrows():
         ax.axvline(abs(r["car3_tr"]), color="k", ls="--", lw=1.2)
         ax.text(abs(r["car3_tr"]), ax.get_ylim()[1] * 0.9, r["event_id"], rotation=90,
                 fontsize=7, ha="right", va="top")
-    ax.set_xlabel("|CAR[-1,+1]| % (BET-TR, ajustare la medie)")
-    ax.set_ylabel("frecventa")
-    ax.set_title("Evenimentele politice fata de distributia nula\n"
-                 f"{observed_exceed} evenimente trec p95, {expected_exceed:.1f} ar fi asteptate "
-                 f"din sansa (p agregat = {p_agg:.3f})")
+    ax.set_xlabel("|CAR[-1,+1]| %, BET-TR mean-adjusted")
+    ax.set_ylabel("count")
+    ax.set_title("Political event days against the null distribution\n"
+                 f"{observed_exceed} events pass p95, {expected_exceed:.1f} expected "
+                 f"by chance alone (aggregate p = {p_agg:.3f})")
     fig.tight_layout()
     fig.savefig(OUT / "fig_placebo.png", dpi=130)
     print("\nOK -> placebo_{null,results,summary}.csv + fig_placebo.png")

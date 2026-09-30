@@ -1,6 +1,7 @@
-"""fetch_intraday.py — extensia C: bare 15min BET+TLV in jurul socurilor majore.
-Ferestre: tur1_2024 (22-27 nov 2024), tur1_2025 (30 apr-7 mai 2025), tur2_2025 (16-20 mai 2025).
-Masoara: gap la open ziua socului, timp pana la minimul zilei, recuperare day+1.
+"""fetch_intraday.py - 15-minute bars for BET+TLV around the three major shocks.
+Windows: tur1_2024 (22-27 Nov 2024), tur1_2025 (30 Apr-7 May 2025), tur2_2025 (16-20 May 2025).
+Measures the opening gap on the shock day, the time to the intraday low, and the
+day+1 follow-through.
 Utilizare: python fetch_intraday.py -> data/intraday_15m.csv + outputs/fig_intraday_*.png
 """
 import time, urllib.parse
@@ -54,25 +55,31 @@ def main():
             time.sleep(1.2)
     df = pd.DataFrame(allbars)
     df["ts_ro"] = pd.to_datetime(df["ts_ro"], utc=True).dt.tz_convert(RO)
-    # datafeed intoarce ultimele 2000 bare pana la `to`; taie la fereastra ceruta
-    bounds = {n: (pd.Timestamp(f, tz=timezone.utc) - pd.Timedelta(days=7), pd.Timestamp(t, tz=timezone.utc) + pd.Timedelta(days=1)) for n, (f, t, _) in WINDOWS.items()}
+    # the feed returns the last 2000 bars up to `to`; clip to the requested window
+    bounds = {n: (pd.Timestamp(f, tz=timezone.utc) - pd.Timedelta(days=7),
+                  pd.Timestamp(t, tz=timezone.utc) + pd.Timedelta(days=1))
+              for n, (f, t, _) in WINDOWS.items()}
     df = df[df.apply(lambda r: bounds[r["window"]][0] <= r["ts_ro"] <= bounds[r["window"]][1], axis=1)]
     df.to_csv(DATA / "intraday_15m.csv", index=False)
-    print(f"OK -> intraday_15m.csv ({len(df)} bare)")
+    print(f"OK -> intraday_15m.csv ({len(df)} bars)")
 
     for name, (_, _, shock) in WINDOWS.items():
         sub = df[df.window == name]
         fig, ax = plt.subplots(figsize=(11, 4.5))
         for sym in ["BET", "TLV"]:
             s = sub[sub.ticker == sym].sort_values("ts_ro")
-            base = s[s.ts_ro.dt.date.astype(str) < shock]["close"].iloc[-1] if any(s.ts_ro.dt.date.astype(str) < shock) else s["close"].iloc[0]
-            ax.plot(s["ts_ro"], (s["close"] / base - 1) * 100, lw=1.3, label=f"{sym} (rebazat pre-soc)")
-        ax.axvline(pd.Timestamp(shock, tz=RO), color="r", ls="--", lw=1, label=f"ziua socului {shock}")
-        ax.set_ylabel("% cumulativ vs inchiderea pre-soc")
-        ax.set_title(f"{name}: viteza reactiei intraday (15min)")
+            base = (s[s.ts_ro.dt.date.astype(str) < shock]["close"].iloc[-1]
+                    if any(s.ts_ro.dt.date.astype(str) < shock) else s["close"].iloc[0])
+            ax.plot(s["ts_ro"], (s["close"] / base - 1) * 100, lw=1.3,
+                    label=f"{sym} (rebased pre-shock)")
+        ax.axvline(pd.Timestamp(shock, tz=RO), color="r", ls="--", lw=1,
+                   label=f"shock day {shock}")
+        ax.set_ylabel("cumulative % vs pre-shock close")
+        ax.set_title(f"{name}: intraday response speed (15-min bars)")
         ax.legend(fontsize=8); fig.autofmt_xdate(); fig.tight_layout()
         fig.savefig(OUT / f"fig_intraday_{name}.png", dpi=130)
-    # viteza: gap open + minim ziua socului (BET)
+
+    # speed: opening gap, intraday low on the shock day (BET)
     for name, (_, _, shock) in WINDOWS.items():
         s = df[(df.window == name) & (df.ticker == "BET")].sort_values("ts_ro")
         pre = s[s.ts_ro.dt.date.astype(str) < shock]["close"].iloc[-1]
@@ -81,7 +88,8 @@ def main():
             gap = (d0["close"].iloc[0] / pre - 1) * 100
             mn = (d0["close"].min() / pre - 1) * 100
             tmin = d0.loc[d0["close"].idxmin(), "ts_ro"]
-            print(f"{name}: gap-open {gap:+.2f}% | minim zi {mn:+.2f}% la {tmin} | inchidere {(d0['close'].iloc[-1]/pre-1)*100:+.2f}%")
+            print(f"{name}: gap-open {gap:+.2f}% | intraday low {mn:+.2f}% at {tmin} "
+                  f"| close {(d0['close'].iloc[-1]/pre-1)*100:+.2f}%")
 
 if __name__ == "__main__":
     main()

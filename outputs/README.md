@@ -1,117 +1,102 @@
-# Cât de rapid mișcă politica BVB (BET, 2020–2026)
+# How fast does politics move the Bucharest Stock Exchange (BET, 2020–2026)
 
-Rulare completă: `python fetch_bvb.py --from 2020-01-01 && python fetch_bench.py --from 2020-01-01 && python fetch_news.py && python analyze.py && python placebo.py && python make_tables.py && python fetch_intraday.py && python check.py && (cd paper && pdflatex paper.tex)`
+Full run: `python fetch_bvb.py --from 2020-01-01 && python fetch_bench.py --from 2020-01-01 && python fetch_news.py && python analyze.py && python placebo.py && python make_tables.py && python fetch_intraday.py && python check.py && (cd paper && pdflatex paper.tex && pdflatex paper.tex)`
 
-## Răspunsul pe scurt (versiune calibrată placebo)
+The research paper is `paper/paper.pdf` (8 pages, English).
 
-**1. Viteza: șocul se vede la deschidere, în primele 15 minute.** Nemodificat — aceasta e
-observația solidă a studiului. Gap-uri la open: −1,57% (25 nov 2024), −2,13% (5 mai 2025),
-+4,12% (19 mai 2025); minimul din noiembrie a fost atins la 10:15, la 15 minute de la open.
+## The short answer (placebo-calibrated)
 
-**2. Magnitudinea are două jumătăți, și cea importantă e cea pozitivă.**
+**1. Speed: the shock shows up at the open, within the first 15 minutes.** This is the solid
+finding. Opening gaps: −1.57% (25 Nov 2024), −2.13% (5 May 2025), +4.12% (19 May 2025). The
+November intraday low came at 10:15, fifteen minutes after the open.
 
-*Unul câte unul*, trei dintre 24 de evenimente trec pragul de 5% (tur2_2025 +6,94% p=0,014;
-ccr_anulare_2024 +4,34% p=0,038; fitch_negativ_2024 −4,31% p=0,040). *În ansamblu*, mișcările
-sunt semnificativ mai mari decât zgomotul: |CAR| mediu **2,00% pe zile de eveniment vs
-1,38% pe zile oarecare, p = 0,026** (test de permutare, 20.000 rulări), cu 3 evenimente peste
-p95 față de 1,1 așteptate din șansă. Concluzia care rezistă: **politica mișcă BVB, dar
-marja de eroare a fiecărui eveniment luat separat e prea mare ca să-l distingi de zgomot.**
+**2. Magnitude has two halves, and the first is the important one.**
 
-Calibrul: null-ul are σ = 1,94%, |CAR₃| p95 = 3,98%. **Un CAR de 3% peste 3 ședințe apare
-în ~10% din ședințe fără nicio știre politică.**
+*One at a time*, three of 24 events clear 5% (tur2_2025 +6.94% p=0.014; ccr_anulare_2024
++4.34% p=0.038; fitch_negativ_2024 −4.31% p=0.040). *In aggregate*, movements are
+significantly larger than noise: mean |CAR| **2.00% on event days vs 1.38% on ordinary days,
+p = 0.026** (permutation test, 20,000 draws), with 3 events above p95 against 1.1 expected by
+chance. The conclusion that survives: **politics moves BVB, but the error margin on any single
+event is too wide to separate it from noise.**
 
-**3. Robustizare.** Re-rulând placebo-ul pe patru ferestre de estimare (−250, −120, −60,
-−40), **identificarea evenimentelor nu se schimbă deloc** (ρ = 1,000). Singura diferență: la
-ferestre mai lungi p95 scade la ~3,4%, iar patru evenimente ating 5% în loc de trei — deci
-numărul e sensibil, ordinea nu. Null-ul calculat doar pe regimul post-COVID dă p95 = 4,00%,
-practic identic: cozile groase nu sunt artefact de pandemie.
+Calibration: the null has σ = 1.94%, |CAR₃| p95 = 3.98%. **A 3% move over three sessions
+happens in ~10% of sessions with no political news at all.**
 
-**4. Șocurile electorale 2024–2025 sunt pur interne.** STOXX 600 a fost plat/pozitiv în
-zilele-cheie (+0,06% / +0,16% / +0,13%) în timp ce BET a divergat tare — dar **nu** ca dovadă
-prin rezidualul de model, vezi punctul 6.
+**3. Robustness.** Re-running the placebo test on four estimation windows (−250, −120, −60,
+−40) leaves the set of significant events **unchanged** (ρ = 1.000). The count does vary: at
+longer windows p95 falls to ~3.4% and four events reach 5% instead of three, which is reported
+rather than hidden. The null restricted to the post-COVID regime gives p95 = 4.00%, practically
+identical, so the fat tails are not an artifact of the pandemic.
 
-**5. Distribuția pe acțiuni și sectoare (neschimbată, descriptivă).** Băncile absorb prima
-lovitură (TLV −4,11% într-o zi), financiarul amplifică (BET-FI −4,51%), energia amortizează
-(BET-NG −2,82%).
+**4. The large electoral shocks are domestic.** STOXX 600 was flat-to-positive on the key days
+(+0.06% / +0.16% / +0.13%) while BET diverged hard — but see §5b: this rests on the raw
+comparison, not on the model residual.
 
-**6. Evenimentele anticipate nu mișcă piața.** Moțiunea care a demis guvernul Cîțu cu 281 de
-voturi: CAR −0,19%; parlamentarele 2020: −0,18%. Coaliția era publică înainte de vot.
+**5. Cross-section and anticipated news.** Banks absorb the first blow (TLV −4.11% in one
+session), financials amplify (BET-FI −4.51%), energy damps (BET-NG −2.82%). Anticipated events
+do not move the market: the no-confidence vote that ousted the Cîțu government with 281 votes
+leaves CAR −0.19%; the December 2020 elections leave −0.18%. The coalition was public before
+the vote.
 
-## Cele trei „anomalii" — toate trei sunt eșecuri de măsurare, nu puzzle-uri de piață
+## The three most striking results were measurement failures
 
-**a) `locale_euro_2024` — contaminare cu dividende. REZOLVATĂ automat.**
-`ajust=1` din API-ul BVB **ajustează doar spliturile, nu dividendele** (verificat: TLV
-−4,69% pe 11.06.2024 apare identic în seria ajustată și neajustată). În iunie 2024, sezonul
-ex-dividend al băncilor, BET scade −3,01% în timp ce BET-TR (randament total) scade doar
-**−0,59%**. Anomalia dispare. `analyze.py` flaghează acum automat orice eveniment cu
-|BET−BET-TR| > 1pp (`contaminat_dividend`) — și acesta e singurul.
+**(a) `guvern_ciuca_2021` — a global selloff day, not a domestic one.** 26 Nov 2021 was the
+Omicron selloff: STOXX 600 **−3.67%**, BET **−3.41%**, closing at the low. BET fell *less* than
+Europe, and the investiture day itself was positive (+0.57%). The `−2.04%` "STOXX-adjusted"
+residual is a **beta-instability artifact**: the calm-window beta (≈0.37) understates crisis
+co-movement (≈0.93), so the model books a fictitious domestic shortfall. Our earlier claim that
+this event "survives the STOXX control" was false and has been removed. The "market taxed the
+coalition" story is also unsupported: such a tax would land on the investiture day.
 
-**b) `guvern_ciuca_2021` — nu e un eveniment domestic, ci ziua globală Omicron.**
-Raw: 26.11.2021 STOXX 600 **−3,67%**, BET **−3,41%** (închis la minimul zilei). BET a căzut
-*mai puțin* decât Europa. Ziua coincide cu desemnarea Omicron de către OMS. Volumeleconfirmă
-o mișcare de piață (TLV 4,09M vs ~1,6M; BRD 175k vs ~69k; SNG 180k vs ~14k).
-→ **Afirmația din versiunea anterioară a acestui document („supraviețuiește controlului
-STOXX") era falsă și a fost ștearsă.** Rezidualul de −2,04% era un artefact de instabilitate
-a beta: beta estimată pe fereastra liniștită (~0,37) subestimă co-movarea de criză (~0,93),
-deci modelul *fabrică* un randament anormal domestic într-o zi de crash global.
-Ipoteza anterioară („piața a taxat coaliția") e și ea greșită: ziua învestiturii a fost
-**pozitivă** (+0,57%); prăbușirea e integral pe 26.11.
+**(b) `locale_euro_2024` — dividend season. Now auto-detected.** The BVB feed's `ajust=1`
+adjusts stock splits but **not** dividends (verified: TLV's −4.69% on 11.06.2024 is identical
+in the adjusted and unadjusted series). In June 2024 BET falls 3.01% where BET-TR falls only
+0.59%. The anomaly disappears. `analyze.py` now flags any event with |BET − BET-TR| > 1pp, and
+this is the only one in the series.
 
-**c) `ccr_anulare_2024` — mișcare reală, dar neatribuibilă anulării.**
-Rebound-ul a început pe **4 decembrie**, cu două zile înaintea hotărârii CCR (BET intraday
-−3,24% pe 4 dec, apoi inversie violentă și închidere verde). Fereastra de estimare
-[−60,−11] se termină ~19 noiembrie, deci **nu conține** prăbușirea din late noiembrie: o bază
-*stale* citește rebound-ul post-craș ca randament anormal pozitiv, chiar dacă CCR ar fi irelevant.
-Păstrăm mișcarea ca observație, o excludem din inferență.
+**(c) `ccr_anulare_2024` — real, but not attributable.** The rebound began on 4 December, two
+sessions before the ruling (BET −3.24% intraday, then a violent reversal to a green close). The
+estimation window ends around 19 November and does not contain the late-November decline, so a
+stale baseline reads the post-crash rebound as positive abnormal return.
 
-## Testul de grup: DEMOTAT la descriptiv
+## Group statistics: demoted to description
 
-Media CAR[−1,+1] pe clasa „știri interne negative" (n=7) este −1,00%. Dar **testul nu mai este
-inferențial**, pentru că etichetele `expected` (negativ/pozitiv/neutru) din `events.csv` au
-fost atribuite de cercetător *cu cunoașterea rezultatului* — orice test pe această
-clasificare este circular prin construcție. Singura cale legitimă ar fi o selecție
-prospectivă a evenimentelor, pe baza unui registru anunțat înainte. Raportăm deci media ca
-descriere a clasei, fără pretenție de validare. În consecință, vechiul „t = −4,33\*\*" pentru
-trio-ul electoral este **retractat**: era un artefact al aceleiași ferestre de estimare liniștite.
+Mean CAR[−1,+1] across domestic negative-sign news (n=7) is −1.00%. It is reported as
+description, not inference, because the `expected` labels were assigned with knowledge of the
+outcomes, making any test on that classification circular. The earlier "t = −4.33\*\*" for the
+electoral trio is **retracted**: an artifact of the same calm estimation window.
 
-## Limitări oneste
+## Honest limitations
 
-- **Putere statistică redusă prin construcție.** n=24 evenimente datate manual, din care
-  multe în afara sezonului electoral. Pragul de detectabilitate la BVB e ≈ 4% pe 3 zile; doar
-  evenimentele mari se văd individual. De aceea testul agregat e cel care poartă concluzia.
-- **Numărul evenimentelor semnificative depinde de fereastră** (3 sau 4 din 24), deși
-  identitatea lor nu depinde. Raportat explicit, nu ascuns.
+- **Low statistical power by construction.** 24 manually dated events, and the detection
+  threshold at BVB is ~4% over three sessions, so no single event can carry much. This is why the
+  aggregate test, not the per-event tests, carries the conclusion.
+- **The number** of events reaching 5% depends on the estimation window (3 or 4 of 24), even
+  though their identity does not. Reported explicitly.
+- No official total-return series exist for individual stocks, so dividend contamination remains
+  possible at the stock level. BET's composition changes over time; the basket here is fixed.
+  Two events carry medium date confidence. BVB is illiquid, so intraday inference rests on
+  high-turnover sessions.
 
-- **Putere statistică redusă prin construcție.** n=24 evenimente datate manual, din care
-  multe în afara sezonului electoral. Placebo-ul arată că pragul de detectabilitate la BVB
-  e ≈ 4% pe 3 zile; doar evenimentele mari se văd.
-- **Ferestre fixe, regimuri diferite.** Estimarea [−60,−11] nu conține crash-urile anterioare,
-  ceea ce atât umflă t-urile, cât și poate crea rebound-uri fantomă. Upgrade: fereastră
-  adaptivă sau model cu coeficienți variabili în timp.
-- **Controlul de piață nu e conservator prin construcție** — poate inventa anormalitate în
-  zile de criză (cazul Ciucă). Verificarea internă a unui efect trebuie făcută pe **raw**
-  față de STOXX, nu doar pe rezidualul de model.
-- **Fără serii oficiale de total return pe acțiuni individuale**; BET-TR acoperă doar
-  indicele, iar contaminarea rămâne posibilă la nivel de acțiune.
-- 2 evenimente cu încredere medie (Fitch, pachet fiscal); coșul BET e fix; RSS acoperă doar
-  prezentul, deci istoricul depinde de datare manuală.
+## Architecture note
 
-## Fișiere
+`placebo.py` **imports** the estimator from `analyze.py` (`abnormal`), so the placebo and the
+study cannot diverge by construction. `WINDOWS` from `analyze.py` drives the sensitivity test.
+Change the estimator and both move together.
 
-- `fetch_bvb.py` (`--from/--to`) — zilnice (BET + 8 acțiuni + 4 indici) → `data/prices_daily.csv`; **documentat defectul `ajust=1`**
-- `fetch_bench.py` (`--from`) — STOXX600 (Yahoo) → `data/bench_daily.csv`
-- `fetch_news.py` — colector RSS autonom (G4Media/HotNews/Digi24/Economica). Nu intră în
-  pipeline: RSS acoperă doar prezentul, iar istoricul e datat manual în `events.csv`
-- `events.csv` — 24 evenimente (2020–2025) cu scope/expected/in_grup/confidence
-- `analyze.py` → `event_table.csv` (include `car3_tr`, `t3_tr`, `contaminat_dividend`), `group_test.csv`, 4 figuri
-- `placebo.py` (`--n`, `--seed`, `--perm`) → `placebo_{null,results,summary}.csv`, `fig_placebo.png` — **calibrarea care dictează concluzia**
-- `make_tables.py` → `paper/tables/*.tex` + `macros.tex`; **toate cifrele din lucrare vin de aici**, deci nu se pot dezacordea cu datele
-- `fetch_intraday.py` — 15min pe 3 șocuri → `data/intraday_15m.csv`, `fig_intraday_*.png`
-- `check.py` — 32 check-uri (toate trec), inclusiv auto-detectia contaminării, calibrul placebo, testul agregat, sensibilitatea la fereastră, și faptul că niciun `\Macro` folosit în `paper.tex` nu e nedefinit
-- `paper/` — research paper LaTeX → `paper.pdf` (9 pagini); `pdflatex paper.tex` de două ori
+`make_tables.py` generates every table and every number quoted in the paper from
+`outputs/*.csv`, so the prose can never drift from the data. `paper/tables/macros.tex` uses
+`\providecommand`, so a stray second `\input` cannot break the build.
 
-## Notă de arhitectură
+## Files
 
-`placebo.py` **importă** estimatorul din `analyze.py` (`abnormal`), deci placebo-ul și studiul
-nu pot diverge prin construcție. `WINDOWS` din `analyze.py` e folosit și pentru testul de
-sensibilitate. Dacă schimbi estimatorul, ambele se schimbă împreună.
+- `fetch_bvb.py` (`--from/--to`) — daily bars (BET + 8 stocks + 4 indices) → `data/prices_daily.csv`; documents the `ajust=1` dividend flaw
+- `fetch_bench.py` (`--from`) — STOXX 600 via Yahoo → `data/bench_daily.csv`
+- `fetch_news.py` — standalone RSS collector. Outside the pipeline: RSS covers only the present, and the history is hand-dated in `events.csv`
+- `events.csv` — 24 events (2020–2025) with scope/expected/in_grup/confidence
+- `analyze.py` → `event_table.csv` (with `car3_tr`, `t3_tr`, `contaminat_dividend`), `group_test.csv`, 4 figures
+- `placebo.py` (`--n`, `--seed`, `--perm`) → `placebo_{null,results,summary}.csv`, `fig_placebo.png`
+- `make_tables.py` → `paper/tables/*.tex` + `macros.tex`
+- `fetch_intraday.py` — 15-minute bars for 3 shocks → `data/intraday_15m.csv`, `fig_intraday_*.png`
+- `check.py` — 34 checks, all passing: dividend auto-detection, placebo calibration, aggregate test, window sensitivity, no undefined macros, and no Romanian left in the paper, tables or figure labels
+- `paper/` — the paper; `pdflatex paper.tex` twice
