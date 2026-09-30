@@ -1,7 +1,10 @@
 """analyze.py — event-study: cat de repede si cat de tare misca politica BVB.
 Metoda: fereastra estimare [-60,-11], eveniment [-5,+5].
-  BET si indici (ROTX/BET-TR/FI/NG): AR = R - media(estimare). Actiuni: model OLS vs BET.
-  Control extern: BET vs STOXX600 (model OLS) -> separa soc intern de zi global-rosie.
+  BET si indici: AR = R - media(estimare). Actiuni: model de piata OLS vs BET.
+  Control extern: BET vs STOXX600 (model OLS) -> separa soc intern de zi global-rosii.
+  SERIA PRIMARA = BET-TR (randament total): ajust=1 din feed-ul BVB nu ajusteaza
+  dividendele, deci randamentele de pret sunt contaminate in ferestrele de ex-dividend.
+  contaminat_dividend flagheaza automat orice eveniment cu |CAR3_BET - CAR3_BETTR| > 1pp.
 Semnificativ: |AR0|>2% sau |CAR[-1,+1]|>3%; formal: t = CAR/(sd*sqrt(T)), * |t|>1.96, ** |t|>2.58.
 Utilizare: python analyze.py -> outputs/event_table.csv + group_test.csv + *.png
 """
@@ -118,7 +121,9 @@ def main():
         if s is None:
             print(f"SKIP {r['event_id']}: istoric insuficient")
             continue
-        sig = abs(s["bet_ar0"]) > 0.02 or abs(s["bet_car3"]) > 0.03
+        tr3 = s.get("BET-TR_car3", np.nan)   # seria primara (randament total)
+        contam = bool(np.isfinite(tr3) and abs(s["bet_car3"] - tr3) > 0.01)
+        sig = abs(tr3) > 0.03 or (abs(s["bet_ar0"]) > 0.02 and not contam)
         rows.append({"event_id": r["event_id"], "anunt_ro": r["datetime_ro"],
                      "zi_tranzactionare": ed.date().isoformat(), "tip": r["tip"],
                      "confidence": r["confidence"], "scope": r["scope"],
@@ -126,6 +131,8 @@ def main():
                      "bet_ar0": round(s["bet_ar0"] * 100, 2), "bet_t0": round(s["bet_t0"], 2),
                      "bet_car3": round(s["bet_car3"] * 100, 2), "bet_t3": round(s["bet_t3"], 2),
                      "bet_car11": round(s["bet_car11"] * 100, 2), "bet_t11": round(s["bet_t11"], 2),
+                     "car3_tr": round(tr3 * 100, 2), "t3_tr": round(s.get("BET-TR_t3", np.nan), 2),
+                     "contaminat_dividend": contam,
                      "betx_car3": round(s["betx_car3"] * 100, 2), "betx_t3": round(s["betx_t3"], 2),
                      "stoxx_r0": round(s["stoxx_r0"] * 100, 2),
                      "divergenta_ro_vs_eu": round(s["divergenta"] * 100, 2),
@@ -134,22 +141,28 @@ def main():
                      for t in STOCKS + INDICES}})
     tab = pd.DataFrame(rows).sort_values("zi_tranzactionare")
     tab.to_csv(OUT / "event_table.csv", index=False)
-    print(tab[["event_id", "zi_tranzactionare", "bet_ar0", "bet_t0", "bet_car3",
-               "bet_t3", "betx_car3", "stoxx_r0", "divergenta_ro_vs_eu"]].to_string(index=False))
+    print(tab[["event_id", "zi_tranzactionare", "bet_car3", "car3_tr", "t3_tr",
+               "contaminat_dividend", "betx_car3", "stoxx_r0"]].to_string(index=False))
+    nc = tab[tab.contaminat_dividend]
+    if len(nc):
+        print(f"\nCONTAMINATE DIVIDEND: {list(nc.event_id)} "
+              f"(exclus(e) din testul de grup)")
 
-    # test de grup: media CAR3 + t cross-sectional, pe scope/expected din CSV
-    # (o singura observatie per soc de tranzactionare: in_grup=nu exclude
-    # demisiile suprapuse peste alegeri si controalele extern/de piata)
+    # Test de grup — DESCRIPTIV, NU INFERENTIAL.
+    # Etichetele `expected` au fost atribuite de cercetator cu cunostinta rezultatului,
+    # deci orice test pe aceasta clasificare este circular prin constructie.
+    # Pastram ca descriptie a clasei, fara pretentie de validare statistica.
     grows = []
     for name, exp in [("negativ", "negativ"), ("pozitiv", "pozitiv")]:
         sub = tab[(tab.scope == "intern") & (tab.expected == exp)
-                  & (tab.in_grup == "da") & (tab.confidence == "ridicata")]
-        v = sub["bet_car3"].values
+                  & (tab.in_grup == "da") & (tab.confidence == "ridicata")
+                  & (~tab.contaminat_dividend)]
+        v = sub["car3_tr"].values
         m, t = (v.mean(), v.mean() / (v.std(ddof=1) / np.sqrt(len(v)))) if len(v) > 1 else (v[0], np.nan)
-        grows.append({"grup": name, "n": len(v), "mean_car3": round(float(m), 2),
-                      "t_cross": round(float(t), 2) if np.isfinite(t) else "",
-                      "stele": stars(t),
-                      "membri": ",".join(sub["event_id"].values)})
+        grows.append({"grup": name, "n": len(v), "mean_car3_tr": round(float(m), 2),
+                      "t_cross_DESCRIPTIV": round(float(t), 2) if np.isfinite(t) else "",
+                      "membri": ",".join(sub["event_id"].values),
+                      "nota": "descriptiv; etichete ex-post, test circular"})
     gtab = pd.DataFrame(grows)
     gtab.to_csv(OUT / "group_test.csv", index=False)
     print("\n" + gtab.to_string(index=False))

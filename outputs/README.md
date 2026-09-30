@@ -1,76 +1,106 @@
 # Cât de rapid mișcă politica BVB (BET, 2020–2026)
 
-Rulare: `python fetch_bvb.py --from 2020-01-01 && python fetch_bench.py --from 2020-01-01 && python fetch_news.py && python analyze.py && python fetch_intraday.py && python check.py`
+Rulare completă: `python fetch_bvb.py --from 2020-01-01 && python fetch_bench.py --from 2020-01-01 && python fetch_news.py && python analyze.py && python placebo.py && python fetch_intraday.py && python check.py`
 
-## Răspunsul pe scurt
+## Răspunsul pe scurt ( versiunea calibrată placebo)
 
-1. **Viteza: șocul se vede la deschidere, în primele 15 minute** (nemodificat): gap-uri de
-   -1,57% / -2,13% / +4,12% la cele trei șocuri electorale majore.
-2. **Șocurile electorale-surpriză 2024–2025 rămân nucleul tare:** trio-ul (tur1_2024,
-   parlamentare_2024, tur1_2025) are CAR3 mediu **-2,94%**, t=-4,33**.
-3. **Noutatea ferestrei 2020–2023: șocurile politice anticipate NU mișcă piața.**
-   Moțiunea care a picat guvernul Cîțu cu 281 voturi (record istoric): CAR3 **-0,13%** —
-   era anunțată (coaliția de 280 voturi era publică), deci prețuită dinainte. Parlamentarele
-   2020 (surpriza AUR 9%): CAR3 **-0,09%** în ziua 0 — piața a așteptat (demisia Orban a doua zi).
-   Criza Stelian Ion (sept 2021): CAR3 -2,10% (t=-1,84, marginal).
-4. **Clasa largă „știri politice negative interne" (n=7) este eterogenă:** media CAR3 -0,97%,
-   t=-0,93, nesemnificativ — trasă în sus de anomalia CCR (+4,35%, semn așteptat negativ,
-   realizat pozitiv) și de cele două zerouri din 2020–2021. Concluzia metodologică: nu orice
-   știre politică e șoc; doar **surpriza** mișcă prețurile (consistent cu eficiența).
-5. **Controalele globale funcționează:** COVID 16 mar 2020 AR0 **-9,37%** (t=-9,26; STOXX
-   -4,86%, deci BET a căzut de ~2x mai tare decât Europa — supra-reacție locală); invazia
-   24 feb 2022 AR0 **-4,28%** (STOXX -3,28%, mai ales global). Debutul H2O (12 iul 2023,
-   control pozitiv de piață): CAR3 **+2,91%** (t=2,85**).
-6. **Guvernul Ciucă (25 nov 2021) e singurul „pozitiv așteptat" cu reacție negativă
-   semnificativă** (CAR3 -2,57%, t=-2,96**) — piața a taxat marele coaliție PSD-PNL sau a
-   prețuit riscul fiscal de sfârșit de an; merită investigație separată, nu concluzii pripite.
-7. Neschimbat: șocurile 2024–2025 sunt pur interne (STOXX plat), ROTX confirmă BET,
-   BET-FI amplifică (-4,51%), BET-NG amortizează, TLV absoarbe prima lovitură (-4,11%).
+**1. Viteza: șocul se vede la deschidere, în primele 15 minute.** Nemodificat — aceasta e
+observația solidă a studiului. Gap-uri la open: −1,57% (25 nov 2024), −2,13% (5 mai 2025),
++4,12% (19 mai 2025); minimul din noiembrie a fost atins la 10:15, la 15 minute de la open.
 
-## Tabelul principal extins (BET, CAR[-1,+1] %, t între paranteze)
+**2. Magnitudinea: mult mai puțină decât sugera testul t.** Un test placebo (500 de
+pseudo-evenimente, același estimator, excluzând vecinii evenimentelor reale) arată că
+distribuția nula a CAR[−1,+1] la BVB are **sd = 1,92%** și **|CAR3| p95 = 3,98%**.
+**Un CAR de 3% peste 3 zile se întâmplă în ~10% din cazuri fără nicio știre politică.**
+Prin urmare, dintre 24 de evenimente politice din 6,5 ani, **doar unul se separă clar de zgomot**:
 
-| eveniment | AR0 | CAR3 | t3 | STOXX ziua 0 | notă |
-|---|---|---|---|---|---|
-| covid 16 mar 2020 | -9,37 | -3,70 | -2,11* | -4,86 | global, supra-reacție RO |
-| parlamentare 2020 | -0,57 | -0,09 | -0,05 | -0,30 | surpriza AUR neprețuită ziua 0 |
-| guvern Cîțu 2020 | +0,33 | +0,67 | +0,43 | +1,08 | formare așteptată, neutru |
-| criza Stelian 2021 | +0,88 | -2,10 | -1,84 | +0,48 | marginal |
-| moțiune Cîțu 2021 | -0,03 | -0,13 | -0,12 | +1,17 | anunțată → prețuită |
-| guvern Ciucă 2021 | +0,49 | -2,57 | -2,96** | +0,42 | anomalie de investigat |
-| invazie 2022 | -4,28 | -1,36 | -0,86 | -3,28 | global |
-| rotativă Ciolacu 2023 | -0,05 | +2,12 | +2,43* | -0,13 | programată, reacție ușoară + |
-| IPO H2O 2023 | +1,48 | +2,91 | +2,85** | +1,51 | control de piață |
-| tur1 2024 | -0,80 | -1,59 | -1,40 | +0,06 | șoc intern |
-| parlamentare 2024 | +0,60 | -3,73 | -3,71** | +0,66 | reacție întârziată |
-| CCR anulare 2024 | +2,97 | +4,35 | +3,92** | +0,18 | semn invers așteptărilor |
-| tur1+demisie 2025 | -2,91 | -3,50 | -1,80 | +0,16 | șoc intern |
-| tur2 2025 | +4,15 | +6,85 | +3,54** | +0,13 | relief pro-european |
+| eveniment | CAR3 (BET-TR) | p empiric | verdict |
+|---|---|---|---|
+| tur2_2025 (victorie Dan) | **+6,94%** | **0,016** | se separă de null |
+| ccr_anulare_2024 | +4,34% | 0,042 | marginal, dar rebound pre-existent (vezi mai jos) |
+| fitch_negativ_2024 | −4,31% | 0,044 | marginal; eveniment cu încredere medie |
+| parlamentare_2024 | −3,74% | 0,062 | **nu semnificativ** (t-ul spunea −3,71**) |
+| tur1_2025 (+demisie) | −3,50% | 0,074 | **nu semnificativ** |
+| guvern_ciuca_2021 | −2,60% | 0,126 | **nu semnificativ** |
 
-## Metodă (detalii în `analyze.py`)
+Testele t clasice (CAR/(σ_estimare·√T)) sunt **excesiv de optimiste** aici: fereastra fixă
+[−60,−11] capturează o perioadă liniștită și subestimează atât media, cât și volatilitatea
+reale, ceea ce umflă statisticile t ale tuturor evenimentelor. Placebo-ul este imun la asta
+pentru că eșargește din întreaga perioadă. **Aceasta e cea mai importantă lecție metodologică
+a proiectului.**
 
-Event-study: estimare [-60,-11] (trunchiată la începutul seriei, minim 30 obs), eveniment
-[-5,+5]; BET/indici = AR vs medie, acțiuni = OLS vs BET, BET-net = OLS vs STOXX600.
-Clasificare ex-ante în `events.csv`: `scope` (intern/extern/piata) + `expected`
-(negativ/pozitiv/neutru) + `in_grup` (o singură observație per șoc de tranzacționare —
-demisiile suprapuse peste alegeri sunt în tabel, dar excluse din testul de grup).
-Test de grup: media CAR3 + t cross-sectional pe (intern, expected, încredere ridicată, in_grup).
+**3. Șocurile electorale 2024–2025 sunt pur interne.** STOXX 600 a fost plat/ușor pozitiv în
+zilele-cheie (+0,06% / +0,16% / +0,13%) în timp ce BET a divergat tare. Vibrația rămâne
+corectă, dar **nu** ca dovadă de efect intern prin rezidualul de model — vezi punctul 6.
 
-## Limitări oneste (actualizat)
+**4. Distribuția pe acțiuni și sectoare (neschimbată, descriptive).** Băncile absorb prima
+lovitură (TLV −4,11% într-o zi), financiarul amplifică (BET-FI −4,51%), energia amortizează
+(BET-NG −2,82%).
 
-- Clasa „negativ" are n=7 — eterogenitatea e constatare, nu eroare; trio-ul electoral
-  omogen (n=3, t=-4,33**) rămâne rezultatul principal pe surprize.
-- `demisie_orban_2020` se suprapune peste fereastra parlamentarelor (7 vs 8 dec) — efecte
-  inseparabile, ambele ~0 oricum.
-- `guvern_ciuca_2021` (-2,57**): fără explicație solidă — posibil contaminare fiscală;
-  semnalat, nu interpretat forțat.
-- Fitch/pachet fiscal rămân cu încredere medie; coșul BET e fix; RSS acoperă doar prezentul.
+**5. Evenimentele anticipate nu mișcă piața.** Moțiunea care a demis guvernul Cîțu cu 281 de
+voturi: CAR −0,19% (p=0,9+); parlamentarele 2020: −0,18%. Coaliția era publică înainte de vot.
+
+## Cele trei „anomalii" — toate trei sunt eșecuri de măsurare, nu puzzle-uri de piață
+
+**a) `locale_euro_2024` — contaminare cu dividende. REZOLVATĂ automat.**
+`ajust=1` din API-ul BVB **ajustează doar spliturile, nu dividendele** (verificat: TLV
+−4,69% pe 11.06.2024 apare identic în seria ajustată și neajustată). În iunie 2024, sezonul
+ex-dividend al băncilor, BET scade −3,01% în timp ce BET-TR (randament total) scade doar
+**−0,59%**. Anomalia dispare. `analyze.py` flaghează acum automat orice eveniment cu
+|BET−BET-TR| > 1pp (`contaminat_dividend`) — și acesta e singurul.
+
+**b) `guvern_ciuca_2021` — nu e un eveniment domestic, ci ziua globală Omicron.**
+Raw: 26.11.2021 STOXX 600 **−3,67%**, BET **−3,41%** (închis la minimul zilei). BET a căzut
+*mai puțin* decât Europa. Ziua coincide cu desemnarea Omicron de către OMS. Volumeleconfirmă
+o mișcare de piață (TLV 4,09M vs ~1,6M; BRD 175k vs ~69k; SNG 180k vs ~14k).
+→ **Afirmația din versiunea anterioară a acestui document („supraviețuiește controlului
+STOXX") era falsă și a fost ștearsă.** Rezidualul de −2,04% era un artefact de instabilitate
+a beta: beta estimată pe fereastra liniștită (~0,37) subestimă co-movarea de criză (~0,93),
+deci modelul *fabrică* un randament anormal domestic într-o zi de crash global.
+Ipoteza anterioară („piața a taxat coaliția") e și ea greșită: ziua învestiturii a fost
+**pozitivă** (+0,57%); prăbușirea e integral pe 26.11.
+
+**c) `ccr_anulare_2024` — mișcare reală, dar neatribuibilă anulării.**
+Rebound-ul a început pe **4 decembrie**, cu două zile înaintea hotărârii CCR (BET intraday
+−3,24% pe 4 dec, apoi inversie violentă și închidere verde). Fereastra de estimare
+[−60,−11] se termină ~19 noiembrie, deci **nu conține** prăbușirea din late noiembrie: o bază
+*stale* citește rebound-ul post-craș ca randament anormal pozitiv, chiar dacă CCR ar fi irelevant.
+Păstrăm mișcarea ca observație, o excludem din inferență.
+
+## Testul de grup: DEMOTAT la descriptiv
+
+Media CAR[−1,+1] pe clasa „știri interne negative" (n=7) este −1,00%. Dar **testul nu mai este
+inferențial**, pentru că etichetele `expected` (negativ/pozitiv/neutru) din `events.csv` au
+fost atribuite de cercetător *cu cunoașterea rezultatului* — orice test pe această
+clasificare este circular prin construcție. Singura cale legitimă ar fi o selecție
+prospectivă a evenimentelor, pe baza unui registru anunțat înainte. Raportăm deci media ca
+descriere a clasei, fără pretenție de validare. În consecință, vechiul „t = −4,33\*\*" pentru
+trio-ul electoral este **retractat**: era un artefact al aceleiași ferestre de estimare liniștite.
+
+## Limitări oneste
+
+- **Putere statistică redusă prin construcție.** n=24 evenimente datate manual, din care
+  multe în afara sezonului electoral. Placebo-ul arată că pragul de detectabilitate la BVB
+  e ≈ 4% pe 3 zile; doar evenimentele mari se văd.
+- **Ferestre fixe, regimuri diferite.** Estimarea [−60,−11] nu conține crash-urile anterioare,
+  ceea ce atât umflă t-urile, cât și poate crea rebound-uri fantomă. Upgrade: fereastră
+  adaptivă sau model cu coeficienți variabili în timp.
+- **Controlul de piață nu e conservator prin construcție** — poate inventa anormalitate în
+  zile de criză (cazul Ciucă). Verificarea internă a unui efect trebuie făcută pe **raw**
+  față de STOXX, nu doar pe rezidualul de model.
+- **Fără serii oficiale de total return pe acțiuni individuale**; BET-TR acoperă doar
+  indicele, iar contaminarea rămâne posibilă la nivel de acțiune.
+- 2 evenimente cu încredere medie (Fitch, pachet fiscal); coșul BET e fix; RSS acoperă doar
+  prezentul, deci istoricul depinde de datare manuală.
 
 ## Fișiere
 
-- `fetch_bvb.py` (`--from/--to`) — zilnice 2020→azi (BET + 8 acțiuni + 4 indici) → `data/prices_daily.csv` (20.991 rânduri)
-- `fetch_bench.py` (`--from`) — STOXX600 (Yahoo) → `data/bench_daily.csv` (1.696 zile)
+- `fetch_bvb.py` (`--from/--to`) — zilnice (BET + 8 acțiuni + 4 indici) → `data/prices_daily.csv`; **documentață defectul `ajust=1`**
+- `fetch_bench.py` (`--from`) — STOXX600 (Yahoo) → `data/bench_daily.csv`
 - `fetch_news.py` — RSS → `data/news_raw.csv`, `news_politic.csv`
 - `events.csv` — 24 evenimente (2020–2025) cu scope/expected/in_grup/confidence
-- `analyze.py` → `outputs/event_table.csv`, `group_test.csv`, 4 figuri
+- `analyze.py` → `event_table.csv` (include `car3_tr`, `t3_tr`, `contaminat_dividend`), `group_test.csv`, 4 figuri
+- `placebo.py` (`--n`, `--seed`) → `placebo_null.csv`, `placebo_results.csv`, `fig_placebo.png` — **calibrarea care dictează concluzia**
 - `fetch_intraday.py` — 15min pe 3 șocuri → `data/intraday_15m.csv`, `fig_intraday_*.png`
-- `check.py` — 14 check-uri (toate trec); `paper/` — research paper LaTeX → `paper.pdf`
+- `check.py` — 18 check-uri (toate trec), inclusiv auto-detectia contaminării și calibrul placebo
+- `paper/` — research paper LaTeX → `paper.pdf`

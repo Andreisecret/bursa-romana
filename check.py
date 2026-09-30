@@ -56,18 +56,13 @@ ok = rr < -1.5
 print(f"{'OK ' if ok else 'FAIL'} ROTX 2025-05-05: {rr:+.2f}% (confirma BET)")
 if not ok:
     fails.append("rotx")
-# 8. testul de grup extins (2020-2026) e calculat; trio-ul electoral 2024-2025
-# ramane semnificativ (eterogenitatea clasei largi e rezultat, nu eroare)
-import numpy as np
+# 8. testul de grup: DEMOTAT la descriptiv (etichetele expected sunt ex-post, test circular)
 g = pd.read_csv(ROOT / "outputs" / "group_test.csv")
 t = pd.read_csv(ROOT / "outputs" / "event_table.csv")
-text = t[t.event_id.isin(["tur1_2024", "parlamentare_2024", "tur1_2025"])]["bet_car3"].values
-tnarrow = text.mean() / (text.std(ddof=1) / np.sqrt(len(text)))
-nrow = int(g[g.grup == "negativ"]["n"].iloc[0])
-ok = nrow == 7 and tnarrow < -2
-print(f"{'OK ' if ok else 'FAIL'} grup extins n={nrow}, trio electoral 2024-2025 t={tnarrow:.2f} (<-2)")
+ok = "t_cross_DESCRIPTIV" in g.columns and (g["nota"].str.contains("circular").all())
+print(f"{'OK ' if ok else 'FAIL'} test de grup demotat la descriptiv (etichete ex-post)")
 if not ok:
-    fails.append("grup")
+    fails.append("grup_demotare")
 # 9. socurile globale 2020/2022 sunt in tabel cu AR0 semnificativ (sanity extern)
 for eid, lo in [("covid_urgenta_2020", -12.0), ("invazie_2022", -6.0)]:
     v = float(t[t.event_id == eid]["bet_ar0"].iloc[0])
@@ -75,4 +70,35 @@ for eid, lo in [("covid_urgenta_2020", -12.0), ("invazie_2022", -6.0)]:
     print(f"{'OK ' if ok else 'FAIL'} {eid} AR0={v:+.2f}% (soc global vizibil)")
     if not ok:
         fails.append(eid)
+
+# 10. CONTAMINATIE DIVIDEND: ajust=1 nu ajusteaza dividendele -> doar evenimentul
+# din iunie 2024 (sezon de dividende) trebuie flagat automat, si numai el.
+cont = t[t.contaminat_dividend]
+ok = set(cont.event_id) == {"locale_euro_2024"}
+print(f"{'OK ' if ok else 'FAIL'} contaminatie dividend: {list(cont.event_id)} (asteptat: locale_euro_2024)")
+if not ok:
+    fails.append("contaminatie")
+# efectiv: pe randamentul total evenimentul dispare
+r = t[t.event_id == "locale_euro_2024"].iloc[0]
+ok = abs(r["bet_car3"]) - abs(r["car3_tr"]) > 2.0
+print(f"{'OK ' if ok else 'FAIL'} locale_euro_2024: BET {r['bet_car3']:+.2f}% -> BET-TR {r['car3_tr']:+.2f}% (dividend)")
+if not ok:
+    fails.append("tr_effect")
+
+# 11. PLACEBO: calibrul arata ca un CAR3 de 3% este obisnuit la BVB; doar tur2_2025
+# se separa de null. Asta e rezultatul onest al studiului si trebuie reflectat in paper.
+p = pd.read_csv(ROOT / "outputs" / "placebo_results.csv")
+null = pd.read_csv(ROOT / "outputs" / "placebo_null.csv")["pseudo_car3_tr_pct"]
+p95 = float(np.percentile(np.abs(null), 95))
+sig5 = sorted(p[p.p_empilateric < 0.05].event_id.tolist())
+ok = p95 > 3.0 and sig5 == ["ccr_anulare_2024", "fitch_negativ_2024", "tur2_2025"]
+print(f"{'OK ' if ok else 'FAIL'} placebo: |CAR3| p95 = {p95:.2f}% ; p<0.05 -> {sig5}")
+if not ok:
+    fails.append("placebo")
+print(f"     (tur2_2025 p={p[p.event_id=='tur2_2025'].p_empilateric.iloc[0]:.3f}; "
+      f"parlamentare_2024 p={p[p.event_id=='parlamentare_2024'].p_empilateric.iloc[0]:.3f} — NU semnificativ)")
+for f in ["outputs/placebo_null.csv", "outputs/placebo_results.csv", "outputs/fig_placebo.png"]:
+    if not (ROOT / f).exists():
+        fails.append(f)
+
 raise SystemExit(1 if fails else print("TOATE CHECK-URILE TREC"))

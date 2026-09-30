@@ -19,14 +19,20 @@
 \maketitle
 
 \begin{abstract}
-\emph{Întrebare:} cât de repede și cât de puternic reacționează acțiunile listate la Bursa de Valori București (BVB) la știrile politice din România? Aplicăm un event-study clasic pe 24 de evenimente din perioada ianuarie 2020 -- iulie 2025, folosind cotații zilnice pentru indicele BET, 8 acțiuni lichide și 4 indici complementari (ROTX, BET-TR, BET-FI, BET-NG), plus bare intraday la 15 minute pentru cele trei șocuri electorale majore. \emph{Rezultate:} (i) reacția la surprize este aproape integrală la deschiderea primei ședințe de tranzacționare de după eveniment --- gap-uri de $-1{,}6\%$, $-2{,}1\%$ și $+4{,}1\%$, cu minimul atins în primele 15 minute în noiembrie 2024; (ii) randamentele anormale cumulate pe fereastra $[-1,+1]$ ajung la $-3{,}5\%$ (mai 2025) și $+6{,}9\%$ (turul al doilea din mai 2025), iar media trio-ului electoral 2024--2025 este $-2{,}94\%$ cu $t=-4{,}33$, semnificativă la 1\%; (iii) extinderea la 2020--2023 arată că șocurile politice \emph{anticipate} nu mișcă piața --- moțiunea care a demis guvernul Cîțu cu 281 de voturi are CAR de $-0{,}13\%$, fiindcă era anunțată --- iar clasa largă a știrilor negative (7 evenimente) este eterogenă ($t=-0{,}93$, nesemnificativ): doar \emph{surpriza} mișcă prețurile; (iv) șocurile electorale sunt pur interne --- indicele STOXX Europe 600 este plat în zilele-cheie, iar corecția cu piața europeană întărește efectele; controalele globale (COVID: $-9{,}37\%$, invazia Ucrainei: $-4{,}28\%$) validează aparatul de măsură; (v) sectorul financiar (BET-FI, $-4{,}51\%$) amplifică, iar energia (BET-NG) amortizează șocurile; băncile absorb prima lovitură (TLV $-4{,}11\%$ într-o zi).
+\emph{Întrebare:} cât de repede și cât de puternic reacționează acțiunile listate la Bursa de Valori București (BVB) la știrile politice din România? Aplicăm un event-study clasic pe 24 de evenimente din 2020--2025, pe cotații zilnice pentru BET, 8 acțiuni lichide și 4 indici complementari, plus bare intraday la 15 minute pentru cele trei șocuri electorale majore, \emph{calibrat cu un test placebo} de 500 de pseudo-evenimente. \emph{Rezultate:} (i) viteza este clară --- reacția la șocurile electorale se formează la deschiderea primei ședințe de după eveniment, cu minimul atins la 15 minute în noiembrie 2024 (gap-uri de $-1{,}6\%$, $-2{,}1\%$, $+4{,}1\%$); (ii) \textbf{magnitudinea este mult mai mică decât o sugerează testul t} --- distribuția nula a CAR$[-1,+1]$ are $\sigma = 1{,}92\%$ și $|CAR_3|$ la percentila 95 este $3{,}98\%$, deci o mișcare de 3\% peste trei zile apare în circa 10\% din cazuri fără nicio știre politică; dintre cele 24 de evenimente, \textbf{doar unul se separă clar de zgomot} (victoria din turul al doilea al prezidențialelor: $+6{,}94\%$, $p = 0{,}016$), trei sunt marginale și restul sunt în interiorul distribuției normale; (iii) șocurile electorale sunt pur interne (STOXX 600 plat/pozitiv în zilele-cheie); (iv) distribuția pe sectoare: băncile absorb prima lovitură (TLV $-4{,}11\%$), financiarul amplifică, energia amortizează.
+
+\medskip
+\noindent\textbf{Contribuție secundară, de metodă:} trei dintre cele mai spectaculoase „anomalii" ale unui event-study obișnuit se dovedesc a fi \emph{eșecuri de măsurare}, nu fenomene de piață: o fereastră de estimare fixă, prinsă într-un regim liniștit, umflă statisticile $t$ ale tuturor evenimentelor; parametrul \texttt{ajust} al fluxului public BVB nu ajustează dividendele, ceea ce contaminează ferestrele de ex-dividend; iar un control de piață calibrat pe o perioadă liniștită poate \emph{fabrica} anormalitate domestică într-o zi de cădere globală.
 
 \medskip
 \noindent\textbf{Cuvinte-cheie:} event-study, risc politic, BVB, BET, eficiența pieței, România.
 \end{abstract}
 
 \begin{abstract}
-\emph{How fast does politics move the Bucharest Stock Exchange? An event study of the 2020--2026 political shocks on the BET index.} Using daily quotes for the BET index, 8 liquid stocks and 4 complementary indices over 2020--2026 (24 events), plus 15-minute bars around the three major electoral shocks, we find: (i) surprise reactions are almost fully priced at the open of the first trading session after the event; (ii) three-day cumulative abnormal returns reach $-3.5\%$ and $+6.9\%$, with a cross-sectional $t$ of $-4.33$ for the 2024--2025 electoral trio; (iii) extending to 2020--2023 shows anticipated political shocks do not move the market (the no-confidence vote ousting the C\^{\i}țu government: $-0.13\%$ CAR) and the broad negative-news class is heterogeneous ($t=-0.93$): only \emph{surprise} moves prices; (iv) electoral shocks are purely domestic (flat STOXX 600 on event days), while global controls (COVID $-9.37\%$, Ukraine invasion $-4.28\%$) validate the measurement apparatus; (v) financials amplify and energy dampens the shocks.
+\emph{How fast does politics move the Bucharest Stock Exchange? An event study of the 2020--2026 political shocks on the BET index, placebo-calibrated.} Daily quotes for the BET index, 8 liquid stocks and 4 complementary indices over 2020--2026 (24 events), plus 15-minute bars around the three major electoral shocks, and a placebo test of 500 pseudo-events run through an identical estimator. Findings: (i) speed is unambiguous --- the reaction to electoral shocks forms at the open of the first session after the event, with the intraday low reached 15 minutes after the open in November 2024 (gaps of $-1.6\%$, $-2.1\%$, $+4.1\%$); (ii) \textbf{the magnitude is far smaller than the conventional $t$-test suggests} --- the null distribution of three-day CAR has $\sigma = 1.92\%$ and a 95th percentile of $3.98\%$, so a 3\% move over three days occurs roughly 10\% of the time with no political news at all; of 24 events, \textbf{only one is clearly distinguishable from noise} (the second-round presidential victory: $+6.94\%$, $p = 0.016$), three are marginal, and the rest sit inside the ordinary range; (iii) the electoral shocks are purely domestic (STOXX 600 flat-to-positive on the event days); (iv) banks absorb the first blow (TLV $-4.11\%$), financials amplify, energy damps.
+
+\medskip
+\emph{Secondary, methodological contribution:} three of the most eye-catching ``anomalies'' of an ordinary event study turn out to be \emph{measurement failures} rather than market phenomena: a fixed estimation window that lands in a calm regime inflates every $t$-statistic; the public BVB feed's \texttt{adjust} flag does not adjust for dividends, contaminating ex-dividend windows; and a market control estimated in calm conditions can \emph{manufacture} domestic abnormality on a global crash day.
 \end{abstract}
 
 \section{Introducere}
@@ -39,7 +45,9 @@ Contribuția acestei lucrări este triplă. Mai întâi, construim un pipeline r
 
 \subsection{Cotații BVB}
 
-BVB nu publică un API oficial pentru dezvoltatori, însă site-ul propriu este deservit de un flux de date compatibil TradingView la adresa \url{https://wapi.bvb.ro/api}, accesibil prin cereri HTTP simple (parametrii \texttt{symbol}, \texttt{from}, \texttt{to}, \texttt{rs}, \texttt{ajust}, \texttt{countback}, \texttt{currencyCode}; rezoluția zilnică se cere ca \texttt{rs=1D}). Am descărcat bare zilnice ajustate (splituri și dividende), în RON, pentru perioada 1 ianuarie 2020 -- 28 septembrie 2026: indicele BET, 8 acțiuni lichide (TLV, SNP, BRD, H2O, SNG, DIGI, TEL, SNN) și 4 indici complementari (ROTX, BET-TR, BET-FI, BET-NG) --- circa 1.690 de ședințe per simbol (H2O există doar din iulie 2023, de la cel mai mare IPO din istoria BVB). Pentru extensia intraday am descărcat bare la 15 minute pentru BET și TLV în jurul celor trei șocuri majore.
+BVB nu publică un API oficial pentru dezvoltatori, însă site-ul propriu este deservit de un flux de date compatibil TradingView la adresa \url{https://wapi.bvb.ro/api}, accesibil prin cereri HTTP simple (parametrii \texttt{symbol}, \texttt{from}, \texttt{to}, \texttt{rs}, \texttt{ajust}, \texttt{countback}, \texttt{currencyCode}; rezoluția zilnică se cere ca \texttt{rs=1D}). Am descărcat bare zilnice ajustate, în RON, pentru perioada 1 ianuarie 2020 -- 28 septembrie 2026: indicele BET, 8 acțiuni lichide (TLV, SNP, BRD, H2O, SNG, DIGI, TEL, SNN) și 4 indici complementari (ROTX, BET-TR, BET-FI, BET-NG) --- circa 1.690 de ședințe per simbol (H2O există doar din iulie 2023, de la cel mai mare IPO din istoria BVB). Pentru extensia intraday am descărcat bare la 15 minute pentru BET și TLV în jurul celor trei șocuri majore.
+
+O limită a sursei de date merită semnalată deoarece schimbă rezultatele: parametrul \texttt{ajust} al fluxului BVB corectează \emph{doar spliturile}, nu dividendele --- am verificat empiric (randamentul TLV din 11.06.2024, $-4{,}69\%$, este identic în seria ajustată și cea neajustată). Prin urmare randamentele de preț sunt contaminate în ferestrele de ex-dividend, iar sezonul de dividende al băncilor românești (iunie) cade chiar în mijlocul ferestrei noastre. Din acest motiv \textbf{seria primară a analizei este BET-TR}, indicele de randament total al BVB, care este imun la acest efect; în paralel, pipeline-ul flaghează automat orice eveniment cu $|\text{BET} - \text{BET-TR}| > 1$ punct procentual pe aceeași fereastră.
 
 \subsection{Benchmark extern}
 
@@ -90,7 +98,11 @@ Pachetul fiscal (TVA) & 7 iul 2025, 12:00 & 7 iul 2025 & medie \\
 
 Urmăm metodologia standard a studiilor de eveniment \cite{mackinlay1997}. Pentru fiecare eveniment definim ziua de tranzacționare $0$: dacă anunțul apare într-o zi de tranzacționare înainte de ora 18:00 (EET), ziua $0$ este ziua însăși, altfel este următoarea zi de tranzacționare. Toate scrutinurile au avut loc duminica seara, deci ziua $0$ este lunea următoare --- gap-ul la deschidere surprinde integral informația acumulată în weekend.
 
-Fereastra de estimare este $[-60,-11]$ zile de tranzacționare (trunchiată la începutul seriei, cu minim 30 de observații; evenimentele sunt omise dacă istoricul este insuficient), iar ferestrele de eveniment sunt $[0,0]$, $[-1,+1]$ și $[-5,+5]$. Pentru BET și indici, randamentul anormal este $AR_t = R_t - \bar{R}_{est}$ (ajustare la medie); pentru acțiuni folosim modelul de piață OLS față de BET, iar pentru controlul extern modelul OLS al BET față de STOXX 600 (ambii estimați pre-eveniment). Statistica de test este $t = CAR / (\hat{\sigma}\sqrt{T})$, cu pragurile uzuale: $*$ pentru $|t|>1{,}96$, $**$ pentru $|t|>2{,}58$. Pragul practic de ``semnificativ economic'' este $|AR_0|>2\%$ sau $|CAR[-1,+1]|>3\%$. Pentru grupul șocurilor negative raportăm și un test cross-sectional, $t = \overline{CAR}/(s/\sqrt{n})$.
+Fereastra de estimare este $[-60,-11]$ zile de tranzacționare (trunchiată la începutul seriei, cu minim 30 de observații; evenimentele sunt omise dacă istoricul este insuficient), iar ferestrele de eveniment sunt $[0,0]$, $[-1,+1]$ și $[-5,+5]$. Pentru BET și indici, randamentul anormal este $AR_t = R_t - \bar{R}_{est}$ (ajustare la medie); pentru acțiuni folosim modelul de piață OLS față de BET, iar pentru controlul extern modelul OLS al BET față de STOXX 600 (ambii estimați pre-eveniment). Statistica de test convențională este $t = CAR / (\hat{\sigma}\sqrt{T})$, cu pragurile uzuale: $*$ pentru $|t|>1{,}96$, $**$ pentru $|t|>2{,}58$.
+
+\subsection{Calibrarea cu test placebo}
+
+Statisticile $t$ de mai sus presupun randamente iid normale cu volatilitatea măsurată în fereastra de estimare. Această presupunere e problematică aici: o fereastră fixă de 50 de ședințe poate cădea într-un regim liniștit și subestima atât media, cât și volatilitatea pe care o folosește drept denominator. Pentru a evita această dependență de un parametru liber, calibrăm cu un test placebo: trasăm 500 de zile de tranzacționare pseudo-aleatoare (excluzând $\pm3$ ședințe în jurul oricărui eveniment real, pentru ca efectele reale să nu se infiltreze în null) și aplicăm \emph{identic} același estimator. Distribuția rezultată ne spune cât de mare este un CAR obișnuit la BVB, iar fiecare eveniment real primește o valoare-$p$ empirică bilaterată pe $|CAR|$.
 
 \section{Rezultate}
 
@@ -114,6 +126,11 @@ T1 + demisie 2025 & 5 mai & $-2{,}91$ $(-2{,}59^{*})$ & $-3{,}50$ $(-1{,}80)$ & 
 T2 mai 2025 & 19 mai & $+4{,}15$ $(3{,}71^{**})$ & $+6{,}85$ $(3{,}54^{**})$ & $+8{,}21$ & $+6{,}11$ \\
 \bottomrule
 \end{tabular}}
+\par\vspace{3pt}
+{\footnotesize\itshape Statisticile $t$ din acest tabel folosesc volatilitatea măsurată în
+fereastra de estimare. Secțiunea~\ref{sec:placebo} arată, printr-un test placebo, că aceste
+valori $t$ sunt excesiv de optimiste: dintre evenimentele marcate aici cu $**$, doar unul se
+separă de distribuția normală a pieței.}
 \end{table}
 
 Figura~\ref{fig:timeline} arată traiectoria BET cu evenimentele marcate, iar Figura~\ref{fig:car} căile CAR$[-5,+5]$: șocurile negative nu se recuperează în 5 zile (CAR $-5{,}6\%$ / $-6{,}0\%$), în timp ce vestea din mai 2025 lasă $+8{,}2\%$.
@@ -204,25 +221,70 @@ Perioada 2020--2023 oferă contrastul care lipsea: instabilitate politică ridic
 
 Controalele globale validează aparatul: starea de urgență COVID (16 martie 2020) dă $AR_0=-9{,}37\%$ ($t=-9{,}26$) cu STOXX la $-4{,}86\%$ --- BET a căzut de circa două ori mai tare decât Europa, o supra-reacție locală; invazia Ucrainei (24 februarie 2022) dă $AR_0=-4{,}28\%$ față de STOXX $-3{,}28\%$, deci preponderent global. Controlul pozitiv de piață funcționează simetric: debutul Hidroelectrica (12 iulie 2023, cel mai mare IPO din istoria BVB) are CAR de $+2{,}91\%$ ($t=2{,}85$).
 
-Anomalia perioadei este guvernul Ciucă (25 noiembrie 2021): semn așteptat pozitiv (formare de guvern), realizat CAR $-2{,}57\%$ ($t=-2{,}96^{**}$). O raportăm fără interpretare forțată --- posibilă taxare a marii coaliții PSD--PNL sau contaminare cu riscul fiscal de sfârșit de an --- și o lăsăm ca direcție de investigație.
+Anomalia perioadei este guvernul Ciucă (25 noiembrie 2021): semn așteptat pozitiv (formare de guvern), realizat CAR $-2{,}60\%$. O analiză a traseului brut o explică: **ziua de 26 noiembrie 2021 a fost vânzarea globală determinată de desemnarea variantei Omicron**, cu STOXX 600 la $-3{,}67\%$ și BET la $-3{,}41\%$ (închis la minimul zilei), iar BET a căzut \emph{mai puțin} decât Europa. Ziua învestiturii în sine a fost \emph{pozitivă} ($+0{,}57\%$). Volumele confirmă o mișcare de piață, nu una internă (TLV 4,09 mil. față de ~1,6 mil. anterior; BRD 175k față de ~69k; SNG 180k față de ~14k). Prin urmare evenimentul este un artefact de contaminare a ferestrei, iar explicațiile pe care le luasem în calcul (taxarea coaliției, riscul fiscal) nu sunt susținute de date.
+
+Observația are o consecință metodologică importantă pe care o semnalăm explicit: rezidualul de $-2{,}04\%$ raportat drept ``efect net de STOXX'' pentru acest eveniment este un \emph{artefact de instabilitate a beta}. Beta estimată pe fereastra liniștită ($\approx 0{,}37$) subestimă co-movarea realizată în criză ($\approx 0{,}93$), astfel încât modelul prevede o cădere mică a BET, BET cade aproape ca Europa, iar modelul înregistrează un deficit domestic fictiv. \textbf{Controlul de piață nu este conservator prin construcție: poate fabrica anormalitate în zile de cădere globală.} Orice verificare a originii interne a unui efect trebuie făcută pe randamentele \emph{brute} comparate cu STOXX, nu exclusiv pe rezidualul de model.
 
 \subsection{Testul de grup și non-evenimentele}
 
-Media CAR$[-1,+1]$ pe trio-ul electoral 2024--2025 (turul 1 din 2024, parlamentarele din 2024, turul 1 din 2025 --- surprize omogene, zile distincte) este $\mathbf{-2{,}94\%}$, cu $t$ cross-sectional de $\mathbf{-4{,}33}$ (semnificativ la 1\%). În schimb, clasa largă a știrilor interne cu semn așteptat negativ (7 evenimente, 2020--2025) este eterogenă: media CAR este $-0{,}97\%$ cu $t=-0{,}93$, nesemnificativ --- trasă în jos de zerourile din 2020--2021 și în sus de anomalia CCR ($+4{,}35\%$, semn invers celui așteptat). Aceasta este o constatare, nu o eroare: nu orice știre politică este un șoc bursier.
+Media CAR$[-1,+1]$ pe trio-ul electoral 2024--2025 (turul 1 din 2024, parlamentarele din 2024, turul 1 din 2025 --- zile distincte) este $-2{,}94\%$, iar clasa largă a știrilor interne cu semn așteptat negativ (7 evenimente, 2020--2025) are media $-1{,}00\%$. \textbf{Această statistică de grup este raportată strict ca descriere, nu ca inferență}: etichetele de semn așteptat (negativ/pozitiv/neutru) au fost atribuite de cercetător cu cunoașterea rezultatului evenimentelor, deci orice test construit pe această clasificare este circular prin construcție. Testul legitim ar necesita o selecție prospectivă a evenimentelor, dintr-un registru anunțat înainte de producerea lor.
 
-Evenimentele anticipate nu mișcă piața: moțiunea din 2021 (CAR $-0{,}13\%$), guvernul Cîțu ($+0{,}67\%$), respingerea candidaturii Georgescu ($+0{,}08\%$), guvernul Bolojan ($-0{,}72\%$), pachetul fiscal ($-0{,}73\%$), rotativa din 2023 ($+2{,}12\%$, $t=2{,}43$, reacție ușoară la un eveniment programat) --- toate, cu excepția menționată, sub pragul economic și statistic. Rezultatul este consistent cu eficiența informațională: doar surpriza mișcă prețurile.
+Evenimentele anticipate nu mișcă piața: moțiunea din 2021 (CAR $-0{,}19\%$), guvernul Cîțu ($+0{,}62\%$), respingerea candidaturii Georgescu ($+0{,}08\%$), guvernul Bolojan ($-0{,}75\%$), pachetul fiscal ($-1{,}00\%$) --- toate confortabil în interiorul distribuției normale. Rezultatul este consistent cu eficiența informațională: doar surpriza mișcă prețurile.
+
+\section{Calibrarea placebo: cât de mari sunt de fapt mișcările}\label{sec:placebo}
+
+Aplicarea testului placebo (500 de pseudo-evenimente, estimator identic, pe BET-TR) produce cel mai important rezultat al lucrării, pentru că este cel care \emph{recalibrează} lectura tuturor celorlalte. Distribuția nula a CAR$[-1,+1]$ are media $-0{,}03\%$ și $\sigma = 1{,}92\%$, cu $|CAR_3|$ la percentila 95 de $3{,}98\%$ și maximul de $9{,}32\%$. Traducerea practică: \textbf{la BVB, o mișcare de 3\% pe trei ședințe se produce în circa 10\% din ședințe fără nicio știre politică}. Pragul efectiv de detectabilitate al unui eveniment politic este, așadar, de ordinul a 4\%.
+
+Tabela~\ref{tab:placebo} ordonează evenimentele după valoarea-$p$ empirică. Concluzia este mult mai severă decât cea sugerată de statisticile $t$ convenționale:
+
+\begin{table}[H]
+\centering
+\caption{Test placebo pe CAR$[-1,+1]$ (BET-TR) versus distribuția nula.}
+\label{tab:placebo}
+{\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}
+\toprule
+Eveniment & CAR$_3$ & $t$ clasic & $p$ empiric & Verdict placebo \\
+\midrule
+Turul 2, mai 2025 & $+6{,}94$ & $+3{,}58^{**}$ & $0{,}016$ & se separă de null \\
+CCR anulare 2024 & $+4{,}34$ & $+3{,}92^{**}$ & $0{,}042$ & marginal (rebound preexistent) \\
+Fitch perspectivă neg. & $-4{,}31$ & $-3{,}10^{**}$ & $0{,}044$ & marginal (încredere medie) \\
+Parlamentare 2024 & $-3{,}74$ & $-3{,}71^{**}$ & $0{,}062$ & nesemnificativ \\
+Turul 1 + demisie 2025 & $-3{,}50$ & $-1{,}80$ & $0{,}074$ & nesemnificativ \\
+Guvernul Ciucă 2021 & $-2{,}60$ & $-3{,}02^{**}$ & $0{,}126$ & nesemnificativ \\
+Locale/euro 2024 & $-0{,}59$ & $-0{,}68$ & $0{,}52$ & nesemnificativ (corectat: dividend) \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Dintre 24 de evenimente politice din șase ani și jumătate, \textbf{un singurul se separă clar de zgomot}: victoria din turul al doilea al prezidențialelor din mai 2025 ($+6{,}94\%$, $p=0{,}016$, percentila 98{,}6). Trei sunt marginale, iar restul --- inclusiv șocurile electorale pe care un event-study convențional ar fi raportat drept semnificative --- se află în interiorul distribuției normale.
+
+Aceasta invalidează o serie de afirmații pe care le-am considerat inițial solide. În particular, statisticile $t$ ale evenimentelor electorale sunt \emph{excesiv de optimiste}, nu pentru că evenimentele nu produc mișcări, ci pentru că fereastra fixă de estimare $[-60,-11]$ capturează un regim liniștit: subestimă volatilitatea reală folosită ca denominator (volatilitatea zilnică medie pe întreaga perioadă e cu circa 50\% mai mare decât cea din ferestrele de estimare) și, prin aceasta, umflă $|t|$ pentru toate evenimentele simultan. Placebo-ul este imun la acest defect prin construcție, fiindcă eșargește din întreaga perioadă. Concluzia corectă nu este că știrile politice nu contează --- ci că \emph{la dimensiunea și lichiditatea acestei piețe, pragul la care un eveniment politic devine statistic vizibil depășește ceea ce un test standard poate raporta în mod onest}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/fig_placebo.png}
+\caption{Test placebo: distribuția nula a CAR$[-1,+1]$ pe 500 de zile pseudo-aleatoare, cu evenimentele reale marcate.}
+\label{fig:placebo}
+\end{figure}
 
 \section{Discuții și limitări}
 
-Trei rezultate cer prudență. (1) Anularea alegerilor de către CCR (6 decembrie) arată $+2{,}97\%$ în ziua $0$ --- contraintuitiv; interpretarea noastră este un \emph{bear-market rally} într-un trimestru de $-5{,}1\%$, nu o evaluare pozitivă a anulării. (2) Alegerile din iunie 2024 au CAR$[-1,+1]$ de $-3{,}01\%$ ($t=-3{,}49$), suspect de mare pentru un scrutin fără surprize --- probabil contaminare cu driveri corporativi (sezon de dividende). (3) Turul întâi din 2025 și demisia premierului sunt inseparabile econometric (aceeași zi de tranzacționare); le tratăm ca un șoc combinat.
+Trei rezultate cer prudență, iar toate trei s-au rezolvat ca artefacte de măsurătoare, nu ca fenomene de piață. (1) Anularea alegerilor de către CCR arăta $+2{,}97\%$ în ziua $0$, dar rebound-ul începuse pe 4 decembrie, cu două ședințe înaintea deciziei, iar fereastra de estimare nu conține prăbușirea anterioară --- deci o bază învechită citește rebound-ul ca abnormal. (2) Alegerile din iunie 2024 arătau $-3{,}01\%$ ($t=-3{,}49$), dar pe \emph{randamentul total} (BET-TR) același eveniment este $-0{,}59\%$: era contaminare de sezon de dividende, acum detectată automat de pipeline. (3) Guvernul Ciucă era „anomalia" cea mai semnificativă statistic, dar se explică printr-o zi de cădere globală (Omicron), pe care un control de piață calibrat calm o-a transformat într-un efect domestic fictiv. Adăugăm a patra observație: turul întâi din 2025 și demisia premierului sunt inseparabile econometric (aceeași zi de tranzacționare); le tratăm ca un șoc combinat.
 
-Limitări structurale: componența BET se schimbă în timp (coșul nostru este fix); RSS-ul acoperă doar prezentul, deci istoricul depinde de datare manuală (2 evenimente cu încredere medie); BVB este ilichidă, deci inferența intraday se sprijină pe zile cu rulaj mare; testul de grup pe clasa largă are $n=7$ cu un semn inversat (CCR) --- eterogenitatea este raportată explicit tocmai pentru a evita concluzii trase din selecție; demisia lui Orban (decembrie 2020) se suprapune peste fereastra parlamentarelor, efecte inseparabile, ambele $\approx 0$ oricum.
+Limitări structurale: puterea statistică este redusă prin construcție --- $n=24$ evenimente datate manual, iar calibrul placebo arată că pragul de detectabilitate la BVB este de ordinul a 4\% pe trei ședințe, deci designul nu poate rezolva mai multe întrebări despre acest tip de efecte. Fereastra de estimare fixă nu conține prăbușirile anterioare, ceea ce umflă statisticile $t$ și poate crea rebound-uri fantomă; o soluție ar fi o fereastră adaptivă sau un model cu coeficienți variabili în timp. Nu există serii oficiale de randament total pentru acțiunile individuale, deci BET-TR acoperă doar indicele, iar contaminarea de dividend rămâne posibilă la nivel de acțiune. Componența BET se schimbă în timp (coșul nostru este fix); RSS-ul acoperă doar prezentul, deci istoricul depinde de datare manuală (2 evenimente cu încredere medie); BVB este ilichidă, deci inferența intraday se sprijină pe zile cu rulaj mare.
 
 Validarea externă este însă exactă: datele noastre reproduc întocmai cifrele din presa financiară --- BET 16.982 puncte / $-0{,}89\%$ pe 25 noiembrie 2024 \cite{bursa}, $-1{,}69\%$ intraday și $-0{,}5\%$ a doua zi în mai 2025 \cite{profit}, toții indicii pe roșu \cite{gandul,digi}.
 
 \section{Concluzii}
 
-Politica românească mișcă BVB repede și tare, dar numai când surprinde: gap-ul la deschiderea de luni \emph{este} reacția (minute, nu zile), magnitudinea atinge $\pm3$--$7\%$ pe fereastra de trei zile, iar extinderea la 2020--2026 arată reversul --- moțiuni istorice și alegeri fără surpriză lasă CAR $\approx 0$. Șocurile electorale sunt demonstrabil interne, financiarul amplifică iar energia amortizează. Pentru investitori, lecția practică este că ferestrele de reacție la București sunt de ordinul minutelor la deschidere --- iar pentru cercetători, că BVB, deși mică și ilichidă, prețuiește riscul politic cu o viteză comparabilă piețelor dezvoltate, dar numai când informația este genuin nouă. Codul, datele și figurile sunt disponibile pentru replicare și extindere.
+Concluzia acestei lucrări este dublă, iar cea mai importantă nu este cea despre piețe.
+
+Pe fond, politica românească mișcă BVB \emph{repede}: gap-ul la deschiderea de luni este reacția, iar în noiembrie 2024 minimul zilei s-a atins la 15 minute de la deschidere. Distribuția pe sectoare este coerentă (băncile absorb prima lovitură, energia amortizează) și șocurile electorale mari sunt demonstrabil interne. Acestea sunt observații solide și reproductibile.
+
+Dar pe \emph{magnitudine}, răspunsul e mult mai modest decât îl sugerau statisticile convenționale. Odată calibrat cu un placebo, doar unul din 24 de evenimente politice se separă de zgomot statistic. Nu pentru că știrile politice ar fi irelevante, ci pentru că la dimensiunea și lichiditatea acestei piețe, mișcările obișnuite ale indicelui sunt de aceeași scară cu efectele pe care un event-study standard le raportează drept semnificative. Concluzia practică pentru un investitor este aceeași și e mai utilă: la București, ferestrele de reacție la știri politice se deschid la ora 10:00 și se închid în minute, dar \emph{doar} evenimentele cu o variație de procentaje întregi ies din zgomotul pieței.
+
+Contribuția metodologică, pentru cei care folosesc această tehnică pe piețe mici și ilichide, este poate cea mai transferabilă: fereastra de estimare fixă poate cădea într-un regim liniștit și umfla toate statisticile $t$ simultan; o ajustare de preț care acoperă spliturile dar nu dividendele poate crea „anomalii" de 2--3 puncte procentuale în plin sezon de dividende; iar un control de piață calibrat calm poate transforma o zi de cădere globală într-un efect domestic fictiv. Toate trei au produs în această lucru rezultate care, luate de bună credere, ar fi susținut concluzii greșite. Codul, datele, testul placebo și figurile sunt disponibile pentru replicare și extindere.
 
 \begin{thebibliography}{9}
 \bibitem{mackinlay1997} MacKinlay, A.C. (1997). Event studies in economics and finance. \emph{Journal of Economic Literature}, 35(1), 13--39.

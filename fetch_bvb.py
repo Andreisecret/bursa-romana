@@ -1,6 +1,14 @@
-"""fetch_bvb.py — descarca zilnice BVB (BET + blue-chips) 2024-2026 via wapi.bvb.ro.
+"""fetch_bvb.py — descarca zilnice BVB (indici + blue-chips) 2020-2026 via wapi.bvb.ro.
 ponytail: stdlib+requests+pandas doar; cache local, retry la 401 tranzient.
-Utilizare: python fetch_bvb.py [--from 2024-01-01] [--to 2026-09-28]
+Utilizare: python fetch_bvb.py [--from 2020-01-01] [--to 2026-09-28]
+
+ATENTIE LA DIVIDENDE: parametrul ajust=1 al feed-ului ajusteaza DOAR spliturile, NU
+dividendele — verificat empiric (TLV 11.06.2024: -4.69% identic in seria ajustata si
+neajustata). Prin urmare randamentele de pret din aceasta serie sunt contaminate in
+ferestrele de ex-dividend (sezonul iunie la bancile romanesti). BET-TR este indicele de
+randament total al BVB si este imune; analyze.py il foloseste ca seria primara si
+flagheaza automat orice eveniment contaminat (vezi contaminat_dividend).
+Ceil: upgrade = serii oficiale de total return pe actiuni individuale (inexistente public).
 """
 import argparse, time, sys, urllib.parse
 from datetime import datetime, timezone
@@ -13,6 +21,8 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; bvb-go)",
            "Referer": "https://www.bvb.ro/"}
 TICKERS = ["BET", "TLV", "SNP", "BRD", "H2O", "SNG", "DIGI", "TEL", "SNN",
            "ROTX", "BET-TR", "BET-FI", "BET-NG"]
+# indicele folosit pentru inferenta principala: randament total, imune la ex-dividend
+PRIMARY_INDEX = "BET-TR"
 ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
