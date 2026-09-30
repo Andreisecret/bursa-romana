@@ -162,7 +162,7 @@ for f in ["outputs/placebo_summary.csv", "paper/tables/tab_window.tex"]:
 tex_all = tex + "".join((ROOT / "paper" / "tables" / f).read_text(encoding="utf-8")
                         for f in ["tab_events.tex", "tab_speed.tex", "tab_idx.tex",
                                   "tab_placebo.tex", "tab_window.tex", "tab_main.tex"])
-RO_MARK = ["Incredere", "Eveniment", "Șoc ", "Ziua", "Tipar", "cheie", "încredere",
+RO_MARK = ["Incredere", "Eveniment", "Soc ", "Ziua", "Tipar", "cheie", "încredere",
            "evenimentele", "Fereastră", "separam", "se separă", "randament total",
            "zile distincte", "clasic & $p$ empiric", "NESEMNIF"]
 hits = [w for w in RO_MARK if w in tex_all]
@@ -182,5 +182,47 @@ print(f"{'OK ' if ok else 'FAIL'} etichete de figura in engleza" +
       (f" (OFENDE: {leaked})" if leaked else ""))
 if not ok:
     fails.append("limba_figuri")
+
+# 17. STRATEGIA: semnalul nu poate citi etichete outcome-informed.
+# Scriem sursa FARA blocul care le declara, ca verificarea sa nu se accuse singura.
+bt = (ROOT / "strategy" / "backtest.py").read_text(encoding="utf-8")
+ok = "FORBIDDEN" in bt
+print(f"{'OK ' if ok else 'FAIL'} strategia declara multimea FORBIDDEN")
+if not ok:
+    fails.append("forbidden")
+body = re.sub(r"FORBIDDEN\s*=\s*\{.*?\}", "", bt, flags=re.S)
+body = re.sub(r'""".*?"""', "", body, flags=re.S)     # docstrings
+body = re.sub(r"#.*", "", body)                      # comentarii
+touched = sorted(c for c in ["expected", "semnificativ", "contaminat_dividend",
+                             "bet_car3", "car3_tr", "p_empilateric"]
+                 if re.search(rf"['\"]{c}['\"]", body))
+ok = not touched
+print(f"{'OK ' if ok else 'FAIL'} strategia nu citeste etichete outcome-informed" +
+      (f" (OFENDE: {touched})" if touched else ""))
+if not ok:
+    fails.append("strategie_lookahead")
+for f in ["strategy/outputs/gap_capturable.csv", "strategy/outputs/s1_directional.csv",
+          "strategy/outputs/s2_overlay.csv", "strategy/outputs/s2_placebo.csv"]:
+    ok = (ROOT / f).exists()
+    print(f"{'OK ' if ok else 'FAIL'} strategie: {f}")
+    if not ok:
+        fails.append(f)
+# 18. rezultatele strategiei trebuie sa fie cele documentate in README (nu drift)
+s1 = pd.read_csv(ROOT / "strategy" / "outputs" / "s1_directional.csv")
+short = s1[s1.strategy == "S1 short ALL events"].iloc[0]
+# rezultatul documentat in strategy/README.md: media e pozitiva, dar CI-ul include zero,
+# deci strategia nu se separa de zero. Daca cineva 'corecteaza' asta, check-ul pica.
+spans_zero = short.ci95_lo < 0 < short.ci95_hi
+ok = bool(spans_zero)
+print(f"{'OK ' if ok else 'FAIL'} S1 scurt: medie {short.mean_net_pct:+.2f}%, "
+      f"CI [{short.ci95_lo:+.2f},{short.ci95_hi:+.2f}] include zero = {spans_zero} (asteptat)")
+if not ok:
+    fails.append("s1_null")
+sp = pd.read_csv(ROOT / "strategy" / "outputs" / "s2_placebo.csv").iloc[0]
+ok = sp.sharpe_observed < sp.sharpe_placebo_p95
+print(f"{'OK ' if ok else 'FAIL'} S2 overlay: Sharpe observat {sp.sharpe_observed:.2f} "
+      f"< p95 placebo {sp.sharpe_placebo_p95:.2f} (imbunatatirea e zgomot)")
+if not ok:
+    fails.append("s2_placebo")
 
 raise SystemExit(1 if fails else print("TOATE CHECK-URILE TREC"))

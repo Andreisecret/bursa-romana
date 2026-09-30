@@ -88,6 +88,26 @@ Change the estimator and both move together.
 `outputs/*.csv`, so the prose can never drift from the data. `paper/tables/macros.tex` uses
 `\providecommand`, so a stray second `\input` cannot break the build.
 
+## Can this be a trading strategy? No, and `strategy/` proves it
+
+`strategy/` runs the two rules someone would build from this paper and shows why neither
+survives. The short version:
+
+- **Feasibility:** the opening gap absorbs 59–98% of the three-day move. After the news is
+  public, what is left is −0.03%, −1.37% and +2.82%. A rule that *reacts* to news acts after
+  the price has already jumped. Only a position taken *before* the event could work, and the
+  research says nothing about forecasting election outcomes — it cannot, by construction.
+- **S1 short around events:** +0.70% per trade net, 95% CI **[−0.39, +1.74]**, i.e. straddles
+  zero. p = 0.069 against a placebo. And the "short" direction was chosen after looking at the
+  data, not preregistered.
+- **S2 flat around events:** Sharpe improves 1.50 → 1.63 and max drawdown −31.1% → −27.6%, but
+  that removes only 67 of 1,689 sessions. Removing **random** 67 sessions gives a placebo Sharpe
+  95th percentile of **1.66**, above the observed 1.63. The improvement is what you get by
+  picking the windows that fell.
+
+The only legitimate path is the one the paper already names: a prospective event register with
+a rule fixed before the first trade. Nothing in this repo can build that.
+
 ## Files
 
 - `fetch_bvb.py` (`--from/--to`) — daily bars (BET + 8 stocks + 4 indices) → `data/prices_daily.csv`; documents the `ajust=1` dividend flaw
