@@ -1,9 +1,3 @@
-"""fetch_intraday.py - 15-minute bars for BET+TLV around the three major shocks.
-Windows: tur1_2024 (22-27 Nov 2024), tur1_2025 (30 Apr-7 May 2025), tur2_2025 (16-20 May 2025).
-Measures the opening gap on the shock day, the time to the intraday low, and the
-day+1 follow-through.
-Utilizare: python fetch_intraday.py -> data/intraday_15m.csv + outputs/fig_intraday_*.png
-"""
 import time, urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
@@ -55,7 +49,7 @@ def main():
             time.sleep(1.2)
     df = pd.DataFrame(allbars)
     df["ts_ro"] = pd.to_datetime(df["ts_ro"], utc=True).dt.tz_convert(RO)
-    # the feed returns the last 2000 bars up to `to`; clip to the requested window
+
     bounds = {n: (pd.Timestamp(f, tz=timezone.utc) - pd.Timedelta(days=7),
                   pd.Timestamp(t, tz=timezone.utc) + pd.Timedelta(days=1))
               for n, (f, t, _) in WINDOWS.items()}
@@ -79,7 +73,7 @@ def main():
         ax.legend(fontsize=8); fig.autofmt_xdate(); fig.tight_layout()
         fig.savefig(OUT / f"fig_intraday_{name}.png", dpi=130)
 
-    # speed: opening gap, intraday low on the shock day (BET)
+
     for name, (_, _, shock) in WINDOWS.items():
         s = df[(df.window == name) & (df.ticker == "BET")].sort_values("ts_ro")
         pre = s[s.ts_ro.dt.date.astype(str) < shock]["close"].iloc[-1]

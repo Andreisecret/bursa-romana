@@ -1,15 +1,3 @@
-"""fetch_bvb.py — descarca zilnice BVB (indici + blue-chips) 2020-2026 via wapi.bvb.ro.
-ponytail: stdlib+requests+pandas doar; cache local, retry la 401 tranzient.
-Utilizare: python fetch_bvb.py [--from 2020-01-01] [--to 2026-09-28]
-
-ATENTIE LA DIVIDENDE: parametrul ajust=1 al feed-ului ajusteaza DOAR spliturile, NU
-dividendele — verificat empiric (TLV 11.06.2024: -4.69% identic in seria ajustata si
-neajustata). Prin urmare randamentele de pret din aceasta serie sunt contaminate in
-ferestrele de ex-dividend (sezonul iunie la bancile romanesti). BET-TR este indicele de
-randament total al BVB si este imune; analyze.py il foloseste ca seria primara si
-flagheaza automat orice eveniment contaminat (vezi contaminat_dividend).
-Ceil: upgrade = serii oficiale de total return pe actiuni individuale (inexistente public).
-"""
 import argparse, time, sys, urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
@@ -45,7 +33,7 @@ def fetch_hist(sess, symbol, frm, to, rs="1D", retries=4):
             for k in range(n):
                 d = datetime.fromtimestamp(j['t'][k], tz=timezone.utc).date().isoformat()
                 if d < frm.date().isoformat() or d > to.date().isoformat():
-                    continue  # datafeed intoarce ultimele N bare pana la `to`, taie la range cerut
+                    continue
                 vv = j.get("v", [])[k] if k < len(j.get("v", [])) else 0
                 out.append({"date": d,
                      "ticker": symbol, "open": j["o"][k], "high": j["h"][k],
@@ -76,7 +64,7 @@ def main():
             continue
         print(f"  {len(bars)} bare")
         allbars += bars
-        time.sleep(1.2)  # spatiere anti-gating
+        time.sleep(1.2)
     if not allbars:
         sys.exit("nimic descarcat — verifica reteaua/BVB")
     df = pd.DataFrame(allbars).sort_values(["ticker", "date"])

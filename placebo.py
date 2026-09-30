@@ -1,16 +1,3 @@
-"""placebo.py — calibrarea care dicteaza concluzia studiului.
-
-Importa estimatorul din analyze.py (`abnormal`), deci placebo-ul si studiul nu pot
-divergea prin constructie. Ruleaza DUPA analyze.py.
-
-Trei intrebari, trei teste:
- 1. cat de mare este un CAR[-1,+1] obisnuit la BVB?      -> distributia nula
- 2. care evenimente ies din ea?                           -> p empiric per eveniment
- 3. evenimentele politice misca BET IN TOTAL?            -> test de permutare pe
-    |CAR| mediu. Acesta e testul care nu sufera de
-    multiplicitatea celor 24 de evenimente individuale.
-Utilizare: python placebo.py [--n 500] [--seed 7] [--perm 20000]
-"""
 import argparse
 from pathlib import Path
 import numpy as np
@@ -23,7 +10,7 @@ from analyze import abnormal, PRIMARY, NEIGHBOUR, WINDOWS
 ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 OUT = ROOT / "outputs"
-POST_COVID = "2022-01-01"   # regimul fara restrictiile de turism 2020-21
+POST_COVID = "2022-01-01"
 
 
 def car3(rets, pos, est=(-60, -10)):
@@ -41,7 +28,7 @@ def main():
         index="date", columns="ticker", values="close").sort_index()
     rets = px[PRIMARY].pct_change()
     n = len(rets)
-    lo, hi = 60, n - 6                      # estimare completa + fereastra completa
+    lo, hi = 60, n - 6
 
     tab = pd.read_csv(OUT / "event_table.csv", parse_dates=["zi_tranzactionare"])
     blocked = set()
@@ -56,17 +43,16 @@ def main():
     null = null[np.isfinite(null)]
     null_pct = null * 100
     pd.DataFrame({"pseudo_car3_tr_pct": null_pct}).to_csv(OUT / "placebo_null.csv", index=False)
-    # cate o nula pentru fiecare fereastra de estimare (sensibilitate).
-    # Ferestrele lungi necesita istoric: pentru evenimentele prea apropiate de
-    # inceputul seriei coloanele de sensibilitate raman NaN, nu se taie fereastra.
+
+
     LO_SENS = -WINDOWS[0][0]
     cand_sens = [p for p in cand if p >= LO_SENS]
     null_alt = {w: np.array([car3(rets, p, w) for p in cand_sens]) for w in WINDOWS}
     null_alt = {w: v[np.isfinite(v)] for w, v in null_alt.items()}
 
-    # ---- per eveniment: p empiric, sensibilitate la fereastra, regim post-COVID
+
     post = rets.index >= pd.Timestamp(POST_COVID)
-    null_post = np.array([car3(rets, p) for p in picks if post[p]])   # in FRACTII
+    null_post = np.array([car3(rets, p) for p in picks if post[p]])
     null_post = null_post[np.isfinite(null_post)]
     p95_post = np.percentile(np.abs(null_post) * 100, 95)
 
@@ -81,14 +67,15 @@ def main():
         c, t = abnormal(rets, pos)
         pv = (1 + np.sum(np.abs(null) >= abs(c))) / (len(null) + 1)
         pv_post = (1 + np.sum(np.abs(null_post) >= abs(c))) / (len(null_post) + 1)
-        # aceeasi regula, cu ferestre de estimare alternante
+
         ok = pos >= LO_SENS
-        alt = {f"car3_w{w[1]}": (round(car3(rets, pos, w) * 100, 2) if ok else np.nan)
-               for w in WINDOWS}
-        alt_p = {}
+        alt, alt_p = {}, {}
         for w in WINDOWS:
-            alt_p[f"p_w{w[1]}"] = (
-                (1 + np.sum(np.abs(null_alt[w]) >= abs(c))) / (len(null_alt[w]) + 1)
+            k = f"w{w[0]}"
+            cw = car3(rets, pos, w) if ok else np.nan
+            alt[f"car3_{k}"] = round(cw * 100, 2) if ok else np.nan
+            alt_p[f"p_{k}"] = (
+                (1 + np.sum(np.abs(null_alt[w]) >= abs(cw))) / (len(null_alt[w]) + 1)
                 if ok else np.nan)
         rows.append({"event_id": r["event_id"], "zi": d, "car3_tr": round(c * 100, 2),
                      "t": round(t, 2), "p_empilateric": round(pv, 4),
@@ -98,11 +85,7 @@ def main():
     res = pd.DataFrame(rows).sort_values("p_empilateric")
     res.to_csv(OUT / "placebo_results.csv", index=False)
 
-    # ---- TEST AGREGAT: evenimentele politice misca BET in total? --------------
-    # |CAR| mediu pe zilele de eveniment vs mostre aleatorii din null. Nu sufera
-    # de multiplicitatea celor 24 de evenimente analizate unul cate unul.
-    # Deduplicam zilele: tur1_2025 si demisia Ciolacu sunt aceeasi sedinta, iar
-    # numararea ei de doua ori ar infla artificial gradul de dovezi.
+
     uniq = res.drop_duplicates(subset="zi")
     ev_car = uniq["car3_tr"].values
     pool = np.abs(null_pct)
@@ -117,14 +100,15 @@ def main():
 
     sens = {}
     for w in WINDOWS:
-        col = f"p_w{w[1]}"
-        v = res[col].dropna()
-        sens[f"n_p05_w{w[1]}"] = int((v < 0.05).sum()) if len(v) else None
-    # corelatia de rang intre ferestre: concluzia depinde de fereastra aleasa?
-    # Spearman fara scipy = Pearson pe ranguri.
-    wc = [f"car3_w{w[1]}" for w in WINDOWS]
+        key = f"w{w[0]}"
+        v = res[f"p_{key}"].dropna()
+        sens[f"n_p05_{key}"] = int((v < 0.05).sum()) if len(v) else None
+        sens[f"p95_{key}"] = round(float(np.percentile(np.abs(null_alt[w]) * 100, 95)), 2)
+
+    wc = [f"car3_w{w[0]}" for w in WINDOWS]
     m = res[wc].rank().corr().values
     rank_rho = float(m[np.triu_indices(len(wc), k=1)].min())
+    n_sens = int(res[wc].notna().all(axis=1).sum())
 
     summary = {
         "n_null": len(null_pct), "null_mean": null_pct.mean(),
@@ -137,6 +121,7 @@ def main():
         "n_p05_full": int((res.p_empilateric < 0.05).sum()),
         "n_p05_postcovid": int((res.p_postcovid < 0.05).sum()),
         "rho_fereastra_min": rank_rho,
+        "n_sensibilitate": n_sens,
         **sens,
     }
     pd.DataFrame([summary]).to_csv(OUT / "placebo_summary.csv", index=False)
@@ -151,7 +136,7 @@ def main():
           f"vs {expected_exceed:.1f} asteptate din sansa\n")
     print("SENSIBILITATE LA FERESTRA DE ESTIMARE:")
     for w in WINDOWS:
-        v = res[f"p_w{w[1]}"].dropna()
+        v = res[f"p_w{w[0]}"].dropna()
         print(f"  estimare [{w[0]},-11]: p95 {np.percentile(np.abs(null_alt[w])*100,95):.2f}% | "
               f"evenimente p<0.05: {int((v<0.05).sum())} din {len(v)}")
     print(f"  corelatia de rang minima intre ferestre: rho = {rank_rho:.3f} "

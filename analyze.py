@@ -1,14 +1,3 @@
-"""analyze.py — event-study: cat de repede si cat de tare misca politica BVB.
-Fereastra estimare [-60,-11], eveniment [-5,+5].
-  BET si indici: AR = R - media(estimare). Actiuni: model de piata OLS vs BET.
-  Control extern: BET vs STOXX600 (model OLS) -> separa soc intern de zi global-rosii.
-  SERIA PRIMARA = BET-TR (randament total): ajust=1 din feed-ul BVB nu ajusteaza
-  dividendele, deci randamentele de pret sunt contaminate in ferestrele de ex-dividend.
-  contaminat_dividend flagheaza automat orice eveniment cu |CAR3_BET - CAR3_BETTR| > 1pp.
-  ATENTIE: t-urile clasice sunt excesiv de optimiste (fereastra de estimatie poate fi
-  liniistita). Verdictul statistic vine din placebo.py, nu din t. Vezi README.
-Utilizare: python analyze.py -> outputs/event_table.csv + group_test.csv + 4 figuri
-"""
 from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -26,16 +15,14 @@ OUT.mkdir(exist_ok=True)
 RO = ZoneInfo("Europe/Bucharest")
 STOCKS = ["TLV", "SNP", "BRD", "H2O", "SNG", "DIGI", "TEL", "SNN"]
 INDICES = ["ROTX", "BET-TR", "BET-FI", "BET-NG"]
-EST_LO, EST_HI = -60, -10   # fereastra de estimare [-60,-11]
-WINDOWS = [(-250, -10), (-120, -10), (-60, -10), (-40, -10)]  # pentru testul de sensibilitate
+EST_LO, EST_HI = -60, -10
+WINDOWS = [(-250, -10), (-120, -10), (-60, -10), (-40, -10)]
 PRIMARY = "BET-TR"          # randament total; vezi caveat-ul despre dividende
 NEIGHBOUR = 3               # excludem zilele apropiate de evenimente reale din nula
 
 def abnormal(rets, pos, est=(EST_LO, EST_HI)):
-    """CAR pe fereastra [-1,+1] si statistica t asociata. SINGURA sursa de adevar
-    pentru estimator: placebo.py importa asta, deci placebo-ul nu poate divergea
-    prin constructie. `est` e parametrizat ca placebo.py sa poata verifica daca
-    concluzia depinde de alegerea arbitrara a ferestrei de estimare."""
+
+
     p = max(pos, -est[0])
     win = rets.iloc[p + est[0]:p + est[1]]
     car = float(rets.iloc[pos - 1:pos + 2].sum() - 3 * win.mean())
@@ -47,14 +34,13 @@ def load_prices():
     px = df.pivot(index="date", columns="ticker", values="close").sort_index()
     rets = px.pct_change()
     bench = pd.read_csv(DATA / "bench_daily.csv", parse_dates=["date"]).set_index("date").sort_index()
-    sx = bench["stoxx_close"].reindex(px.index).ffill()  # aliniaza calendarul EU la BVB
+    sx = bench["stoxx_close"].reindex(px.index).ffill()
     rets["STOXX"] = sx.pct_change()
     return px, rets
 
 def event_day(ev_dt, trading_dates):
-    """ponytail: euristica mapare stire->zi de tranzactionare: daca stirea cade
-    intr-o zi de tranz. inainte de inchidere (18:00 EET) => ziua misma, altfel
-    urmatoarea zi de tranzactionare. Upgrade: calendar oficial BVB sarbatori."""
+
+
     d = ev_dt.date()
     if pd.Timestamp(d) in trading_dates and ev_dt.hour < 18:
         return pd.Timestamp(d)
@@ -79,16 +65,16 @@ def study(rets, ev_date):
     td = rets.index
     pos = td.get_loc(ev_date)
     if pos < 30:
-        return None  # istoric insuficient pentru fereastra de estimare
-    est = rets.iloc[max(0, pos - 60):pos - 10]  # [-60,-11] (trunchiat la inceput de serie)
+        return None
+    est = rets.iloc[max(0, pos - 60):pos - 10]
     out = {}
-    # BET mean-adjusted
+
     mu, sd = est["BET"].mean(), est["BET"].std()
     ar_bet = rets["BET"] - mu
     for w, n, tn in [([0, 0], "ar0", "t0"), ([-1, 1], "car3", "t3"), ([-5, 5], "car11", "t11")]:
         c, t = car_t(ar_bet, pos, w, sd)
         out[f"bet_{n}"], out[f"bet_{tn}"] = c, t
-    # BET vs STOXX (control extern)
+
     b, a = ols_beta(est["BET"].values, est["STOXX"].values)
     ar_bx = rets["BET"] - (a + b * rets["STOXX"])
     sd_bx = ar_bx.iloc[pos - 60:pos - 10].std()
@@ -97,17 +83,17 @@ def study(rets, ev_date):
         out[f"betx_{n}"], out[f"betx_{tn}"] = c, t
     out["stoxx_r0"] = rets["STOXX"].iloc[pos]
     out["divergenta"] = rets["BET"].iloc[pos] - rets["STOXX"].iloc[pos]
-    # indici mean-adjusted (CAR3)
+
     for idx in INDICES:
         if idx not in rets:
             continue
         ar = rets[idx] - est[idx].mean()
         c, t = car_t(ar, pos, [-1, 1], est[idx].std())
         out[f"{idx}_car3"], out[f"{idx}_t3"] = c, t
-    # actiuni model piata vs BET (CAR3)
+
     for s in STOCKS:
         if s not in rets or est[s].isna().all():
-            continue  # ex H2O inainte de listarea din 2023
+            continue
         bs, als = ols_beta(est[s].values, est["BET"].values)
         ar = rets[s] - (als + bs * rets["BET"])
         c, _ = car_t(ar, pos, [-1, 1], ar.iloc[pos - 60:pos - 10].std())
@@ -157,10 +143,7 @@ def main():
         print(f"\nCONTAMINATE DIVIDEND: {list(nc.event_id)} "
               f"(exclus(e) din testul de grup)")
 
-    # Test de grup — DESCRIPTIV, NU INFERENTIAL.
-    # Etichetele `expected` au fost atribuite de cercetator cu cunostinta rezultatului,
-    # deci orice test pe aceasta clasificare este circular prin constructie.
-    # Pastram ca descriptie a clasei, fara pretentie de validare statistica.
+
     grows = []
     for name, exp in [("negativ", "negativ"), ("pozitiv", "pozitiv")]:
         sub = tab[(tab.scope == "intern") & (tab.expected == exp)
@@ -176,7 +159,7 @@ def main():
     gtab.to_csv(OUT / "group_test.csv", index=False)
     print("\n" + gtab.to_string(index=False))
 
-    # Fig1: BET timeline + evenimente
+
     fig, ax = plt.subplots(figsize=(12, 5))
     ax.plot(px.index, px["BET"], lw=1.2)
     for _, r in tab[tab.confidence == "ridicata"].iterrows():
@@ -187,7 +170,7 @@ def main():
     fig.autofmt_xdate(); fig.tight_layout()
     fig.savefig(OUT / "fig_bet_timeline.png", dpi=130)
 
-    # Fig2: CAR mediu [-5,+5] per eveniment
+
     cars = {}
     for _, r in tab[tab.confidence == "ridicata"].iterrows():
         ed = pd.Timestamp(r["zi_tranzactionare"])
@@ -205,7 +188,7 @@ def main():
         ax2.legend(fontsize=7, ncol=2)
         fig2.tight_layout(); fig2.savefig(OUT / "fig_car_paths.png", dpi=130)
 
-    # Fig3: BET vs STOXX600 normalizat (baza 100 la inceputul seriei) -> divergenta interna vs externa
+
     base = px.index[1]
     fig3, ax3 = plt.subplots(figsize=(12, 4.5))
     ax3.plot(px.index, px["BET"] / px["BET"].loc[base] * 100, label="BET", lw=1.3)
@@ -218,7 +201,7 @@ def main():
     ax3.legend(); fig3.autofmt_xdate(); fig3.tight_layout()
     fig3.savefig(OUT / "fig_bet_vs_stoxx.png", dpi=130)
 
-    # Fig4: CAR3 comparat pe indici la cele 5 socuri majore (seria primara, randament total)
+
     majors = tab[tab.event_id.isin(["tur1_2024", "ccr_anulare_2024", "tur1_2025", "tur2_2025", "parlamentare_2024"])]
     if len(majors):
         cols = ["car3_tr", "ROTX_car3", "BET-FI_car3", "BET-NG_car3"]

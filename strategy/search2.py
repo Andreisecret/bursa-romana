@@ -1,19 +1,3 @@
-"""search2.py - ce ar trebui sa fie ca sa conteze.
-
-search.py a aratat ca nimic nu supravietuieste cautarii de regula. Doua intrebari
-raman, si amandase se raspund fara sa cautam reguli noi:
-
-  1. SENSIBILITATE LA COST. 50 bps poate fi prea putini pentru o piata ca BVB.
-     Daca marginea dispare la costuri realiste, raspunsul e ca nu exista.
-  2. PUTERE DE DETECTIE. Care ar fi efectul minim pe care testul l-ar putea
-     detecta? Daca e mult peste ce observam, atunci designul nu poate raspunde
-     la intrebare nici cand raspunde bine. Asta e mai util decat un p-value.
-
-Nu adaugam reguli. Cautarea de regula e deja plătita, iar marirea sample-ului
-e singura cale care ar crește puterea.
-
-Utilizare: python strategy/search2.py
-"""
 import sys
 from pathlib import Path
 
@@ -40,7 +24,7 @@ def main():
     pos = positions(px, ev)
     r = px[PRIMARY].pct_change().fillna(0.0).values
 
-    # ---- 1. sensitivitate la cost -------------------------------------------
+
     print("=" * 84)
     print("1. SENSIBILITATE LA COSTURI (cele mai bune 3 reguli, pe intreaga perioada)")
     print("=" * 84)
@@ -75,16 +59,16 @@ def main():
     print("  Brokeraj, spread și impact pe o piață ca BVB sunt realist 50-200 bps")
     print("  în ambele sensuri. Sub pragul de rentabilitate nu e strategie.")
 
-    # ---- 2. putere de detectie ----------------------------------------------
+
     print("\n" + "=" * 84)
     print("2. PUTEREA DE DETECTIE: ce efect minim ar fi vizibil?")
     print("=" * 84)
     rule_best = RULES[[x[0] for x in RULES].index("open_short_all")]
-    v = evaluate(r, pos, rule_best, 50 / 1e4)      # net, pentru raportare
-    v_gross = evaluate(r, pos, rule_best, 0.0)     # BRUT, pentru putere
+    v = evaluate(r, pos, rule_best, 50 / 1e4)
+    v_gross = evaluate(r, pos, rule_best, 0.0)
     n, sd, alpha = len(v), v.std(ddof=1), 0.05
     se = sd / np.sqrt(n)
-    mde = 1.96 * se            # efect minim la pragul de 5%, putere 50%
+    mde = 1.96 * se
     print(f"  n = {n} evenimente, dispersie {sd * 100:.2f}%, erare standard {se * 100:.2f}%")
     print(f"  efect minim detectabil la alfa=5%, putere 50%: {mde * 100:.2f}% per tranzactie")
     print(f"  efect BRUT observat (cea mai buna regula):     {v_gross.mean() * 100:.2f}%")
@@ -96,7 +80,7 @@ def main():
     print("  Efectul brut observat e sub acest prag: cu 24 de evenimente nici un")
     print("  efect real de aceasta marime nu s-ar vedea. Indiferent daca exista sau nu.")
 
-    # cate evenimente ar trebui ca puterea sa fie 80% la efectul BRUT observat
+
     from statistics import NormalDist
     z_a = NormalDist().inv_cdf(1 - alpha / 2)
     z_b = NormalDist().inv_cdf(0.80)

@@ -48,7 +48,7 @@ e preregistrată.
 |---|---|---|---|---|---|
 | randament/tranzacție | **+0,41%** | +0,16% | **−0,09%** | −0,59% | −1,59% |
 
-**Pragul de rentabilitate e exact la 50 bps.** Pe o piață ca BVB, brokeraj plus spread
+**Pragul de rentabilitate e la ~41 bps**, interpolat intre punctele de 25 si 50 bps ale grilei. Pe o piață ca BVB, brokeraj plus spread
 plus impact sunt realist 50–200 bps în ambele sensuri. Marja brută (0,41% pe eveniment) e
 mai mică decât costul intrării în poziție. Nu e o strategie cu o marjă subțire, e o
 strategie fără marjă.
@@ -57,16 +57,25 @@ strategie fără marjă.
 
 `search.py` declară 12 reguli **înainte de rulare** și plătește pentru căutare cu un
 reality check pe max-statistică: pentru fiecare permutare se iau ferestre aleatoare cu
-același număr de evenimente, per regulă, și se păstrează cea mai mare t. Distribuția
-maximului e null-ul corect pentru „cea mai bună dintre 12 reguli".
+același număr de evenimente, per regulă, și se păstrează cea mai mare t.
 
-- cea mai bună t observată: **0,00** (regula de overlay, zero prin construcție)
-- max-statistica nulă: 0,93 în medie, p95 2,28
-- **p (reality check) = 1,0000**
-- șansa de a găsi ceva doar din noroc cu 12 reguli: **46%**
+Una dintre cele 12 e un overlay care nu ia nicio poziție, deci nu are t-statistică. **Era
+ascuns în max-statistică și îl bloca:** cu direcția 0, t observată și maximul nul erau
+ambele 0, deci fiecare permutare „bătea" observația și p-ul era 1 prin construcție, pe orice
+date. Regula e acum exclusă din ambele ramuri, iar max-statistica se iare peste cele
+**11 reguli cu direcție**.
 
-Nimic nu supraviețuiește. O regulă de pe 24 de puncte care pare bună e, la acest eșantion,
-exact ce aș fi găsit și fără ea.
+- cea mai bună t observată: **−0,09** (`pre_short_election`)
+- max-statistica nulă: 0,93 în medie, p95 2,22
+- **p (reality check) = 0,9422**, verdict `degen`
+- șansa de a găsi ceva doar din noroc cu 11 reguli: **43%**
+
+Numărul trebuie citit cu o rezervă care contează mai mult decât el: cea mai bună t observată
+e **negativă**, deci orice maxim nul o depășește prin construcție și testul nu poate respinge
+nimic. Ce **nu** spune: că regulile sunt indistinctibile de zgomot. Spune că nicio regulă n-are
+medie pozitivă după costuri — ceea ce tabelul de costuri stabilește direct, fără test. Un
+reality check își dovedește utilitatea exact când o regulă *pare* bună, și asta e cazul care
+nu apare aici.
 
 ## Puterea de detectie: problema nu e căutarea, e eșantionul
 

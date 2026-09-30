@@ -1,23 +1,3 @@
-"""backtest.py - poate cercetarea din paper/ transformata intr-o strategie?
-
-Testeaza propriile claim-uri ale lucrarii, cu reguli EX-ANTE si costuri reale.
-Daca raspunsul e nu, asta e rezultatul, nu un esec al harness-ului.
-
-Regula dura: strategia NU poate citi outcome-informed labels. Coloanele
-`expected`, `semnificativ`, `contaminat_dividend`, `bet_car3`, `car3_tr`,
-`p_empilateric` sunt interzise in constructia semnalului, iar asta e verificat
-la runtime, nu asumat intr-un comentariu. `expected` e atribuit de cercetator cu
-cunoasterea rezultatului, deci un backtest pe baza lui ar fi circular.
-
-Ce testam:
-  D0  cat din miscare e capturabila dupa veste (gap la open vs rest) -> fezabilitate
-  S1  strategie directionala: scurt lung in jurul evenimentelor (ex-ante: doar tip)
-  S2  overlay de risc: expunere 0 in ferestrele de eveniment, restul buy-and-hold
-Ambele evaluate net de costuri, cu bootstrap CI si placebo pe fereastra de timp.
-
-Utilizare: python strategy/backtest.py [--cost-bps 50] [--boot 10000]
-Ruleaza din radacina repo-ului: python strategy/backtest.py
-"""
 import argparse
 import sys
 from pathlib import Path
@@ -28,17 +8,17 @@ sys.path.insert(0, str(ROOT))
 import numpy as np
 import pandas as pd
 
-from analyze import load_prices, abnormal, PRIMARY   # sursa unica a datelor
-from fetch_intraday import WINDOWS                     # ferestrele de soc
+from analyze import load_prices, abnormal, PRIMARY
+from fetch_intraday import WINDOWS
 
 OUT = ROOT / "strategy" / "outputs"
 OUT.mkdir(parents=True, exist_ok=True)
 DATA = ROOT / "data"
 
-# outcome-informed: interzise in orice semnal
+
 FORBIDDEN = {"expected", "semnificativ", "contaminat_dividend", "bet_car3",
              "car3_tr", "t3_tr", "bet_t3", "p_empilateric", "percentila_abs"}
-HOLD = (-1, 1)          # ferestrea de eveniment, in sedinte de tranzacţionare
+HOLD = (-1, 1)
 
 
 def load():
@@ -51,9 +31,8 @@ def load():
 
 
 def event_positions(px, ev, min_liq=None):
-    """Sezile de eveniment, ca pozitii in seria de tranzactie.
-    Maparea stire->zi de tranzacţionare e aceeasi ca in analyze.py: aceeasi zi
-    daca stirea e inainte de 18:00, altfel urmatoarea."""
+
+
     from datetime import datetime
     from zoneinfo import ZoneInfo
     ro = ZoneInfo("Europe/Bucharest")
@@ -83,10 +62,8 @@ def vol_ok(vol, day, min_liq):
 
 
 def trade_returns(rets, positions, cost_bps, direction):
-    """Randamentul net pe fereastra de eveniment, pentru o directie data.
-    direction: +1 long, -1 short. Pozitia se ia cu 1 sedinta INAINTE de ziua
-    evenimentului (ex-ante: se poate intra inainte de veste, nu dupa).
-    Costul se scade cu semnul lui: un short plateste la inchidere."""
+
+
     r = rets[PRIMARY].values
     cost = cost_bps / 1e4
     out = []
@@ -116,24 +93,22 @@ def bootstrap_ci(v, n_boot, seed):
 
 
 def placebo_distribution(rets, n_draw, cost_bps, direction, n_pos, seed):
-    """Acelasi estimator pe ferestre pseudo-aleatoare. Strategia castiga doar daca
-    bat o distributie construita din ferestre fara eveniment."""
+
+
     r = rets[PRIMARY].values
     cost = cost_bps / 1e4
     rr = np.random.default_rng(seed)
     lo, hi = 61, len(r) - 3
-    picks = rr.integers(lo, hi, size=(n_draw, n_pos))       # (n_draw, n_pos)
+    picks = rr.integers(lo, hi, size=(n_draw, n_pos))
     offs = np.arange(HOLD[0], HOLD[1] + 1)
-    idx = picks[:, :, None] + offs[None, None, :]            # (n_draw, n_pos, 3)
-    gross = np.prod(1 + direction * r[idx], axis=2) - 1      # (n_draw, n_pos)
+    idx = picks[:, :, None] + offs[None, None, :]
+    gross = np.prod(1 + direction * r[idx], axis=2) - 1
     return gross.mean(axis=1) * 100 - cost * 100
 
 
 def gap_capturable(intraday, rets):
-    """Cata miscare ramane dupa ce ai auzit vestea? Comparam gap-ul la deschidere
-    cu miscarea pe 3 sedinte, pentru ca strategia tine pozitia pe [-1,+1].
-    Daca gap-ul absoarbe cea mai mare parte, cine reactioneaza la stire prinde
-    doar restul, si nu exista alfa acolo."""
+
+
     rows = []
     for name, (_, _, shock) in WINDOWS.items():
         sub = intraday[intraday.window == name]
@@ -156,9 +131,8 @@ def gap_capturable(intraday, rets):
 
 
 def equity_overlay(px, positions, exposure_off=True):
-    """S2: buy-and-hold cu expunere 0 in ferestrele de eveniment [-1,+1].
-    Comparam risc, nu alfa: daca coada e mai groasa in zilele de eveniment,
-    reducerea expunerii ar trebui sa taie drawdown-ul."""
+
+
     r = px[PRIMARY].pct_change().fillna(0.0)
     mask_off = pd.Series(False, index=r.index)
     for e in positions:
@@ -184,8 +158,8 @@ def equity_overlay(px, positions, exposure_off=True):
 
 
 def overlay_placebo(px, positions, n_draw, seed):
-    """Aceeasi regula (expunere 0 in fereastra [-1,+1]), dar pe ferestre alese
-    la intamplare. Daca Sharpe-ul si drawdown-ul reale sunt tipice, S2 e zgomot."""
+
+
     r = px[PRIMARY].pct_change().fillna(0.0)
     idx = [e["pos"] for e in positions]
     n_sessions = len(r)
@@ -219,12 +193,12 @@ def main():
     px, rets, ev, vol = load()
     pos_all = event_positions(px, ev, min_liq=a.min_liq or None)
 
-    # --- D0: fezabilitate ---------------------------------------------------
+
     intraday = pd.read_csv(DATA / "intraday_15m.csv")
     gapdf = gap_capturable(intraday, rets)
     gapdf.to_csv(OUT / "gap_capturable.csv", index=False)
 
-    # --- S1: directionala, doar pe tip (EX-ANTE) -----------------------------
+
     ELECTIONS = {"alegeri"}
     pos_el = [p for p in pos_all if p["tip"] in ELECTIONS]
     rows = []
@@ -245,7 +219,7 @@ def main():
     s1 = pd.DataFrame(rows)
     s1.to_csv(OUT / "s1_directional.csv", index=False)
 
-    # --- S2: overlay de risc -------------------------------------------------
+
     s2 = equity_overlay(px, pos_all, exposure_off=True)
     pd.DataFrame([s2["buy_and_hold"], s2["event_overlay"]]).to_csv(OUT / "s2_overlay.csv")
     pl2 = overlay_placebo(px, pos_all, a.n_draw, 13)
@@ -259,7 +233,7 @@ def main():
     }
     pd.DataFrame([s2_p]).to_csv(OUT / "s2_placebo.csv", index=False)
 
-    # --- raport -------------------------------------------------------------
+
     print("=" * 78)
     print("D0  CAT DIN MISCARE E CAPTURABILA DUPA VESTE")
     print("=" * 78)

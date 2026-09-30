@@ -1,24 +1,3 @@
-"""monitor.py - monitorizeaza caderile bruste, le coreleaza cu stiri politice si
-le compara cu istoricul.
-
-Ruleaza in doua moduri:
-  detect    (implicit) descarca ultimele cotatii si stirile politice, cauta o
-            sedinta cu |randament| peste pragul calibrat din distributia nula si,
-            daca exista, scrie O LINIE NOUA in register.csv. Campurile de refacere
-            raman GOALE: ele se completeaza mai tarziu, in modul `resolve`. Asta
-            e singurul mod in care registrul e cu adevarat prospectiv, nu o
-            reconstructie cu memoria.
-  resolve   completeaza campurile de refacere pentru liniile care asteapta. Se
-            ruleaza dupa ce a trecut suficient timp.
-
-Nu decide daca merita cumparat. Spune ce s-a mai intamplat la socuri de aceeasi
-adancime si citeste istoricul, ca decizia sa ramana a celui care o ia.
-
-Utilizare:
-  python monitor/monitor.py                 # detectie
-  python monitor/monitor.py --resolve       # completeaza refacerile
-  python monitor/monitor.py --threshold 2.5 # alt prag, in % (implicit p95)
-"""
 import argparse
 import sys
 from datetime import datetime, timezone, timedelta
@@ -31,8 +10,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-# Titlurile stirilor vin cu diacritice romanesti, care nu exista in codificarea
-# consola Windows (cp1252). Reconfiguram stdout in loc sa stergem textul.
+
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 except Exception:
@@ -57,8 +35,8 @@ def thresholds():
 
 
 def recent_political_news(hours=36):
-    """Articole politice publicate in ultimele `hours`. Intoarce titlurile si sursa.
-    Filtrarea pe cuvinte-cheie e cea din fetch_news, ca sa nu se dubleze."""
+
+
     cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
     hits = []
     sess = requests.Session(); sess.headers.update(UA)
@@ -107,7 +85,7 @@ def detect(threshold):
     if not news:
         print("  (niciun articol politic gasit -> soc fara cauza politica evidenta)")
 
-    # istoric: cum s-au comportat socurile de aceeasi adancime
+
     rec = OUT / "recovery_events.csv"
     if rec.exists():
         d = pd.read_csv(rec)
@@ -149,8 +127,8 @@ def resolve():
     if not REGISTER.exists():
         print("registru inexistent. Ruleaza mai intai detect.")
         return
-    # citim ca text: coloanele de rezultat sunt goale la detectie, iar pandas le-ar
-    # deduce ca float si ar refuza ulterior sa scriem un bool in ele
+
+
     reg = pd.read_csv(REGISTER, dtype=str).fillna("")
     px, _ = load_prices()
     last = px[PRIMARY].dropna()
@@ -165,7 +143,7 @@ def resolve():
         p = last.index.get_loc(d)
         remaining = len(last) - 1 - p
         if remaining < 60:
-            # nu s-auobservat inca 60 de sedinte; lasam gol, nu scriem -1
+
             print(f"{row.data_soc}: doar {remaining} sedinte dupa soc, "
                   f"rezultatul nu se poate stabili inca")
             continue

@@ -1,7 +1,3 @@
-"""make_tables.py — genereaza tabelele si cifrele din date, ca paper.tex sa nu se
-dezacordeze niciodata cu outputs/*.csv. Ruleaza DUPA analyze.py si placebo.py.
-Utilizare: python make_tables.py -> paper/tables/*.tex  (apoi pdflatex de 2x)
-"""
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -12,8 +8,8 @@ TAB = ROOT / "paper" / "tables"
 TAB.mkdir(parents=True, exist_ok=True)
 
 def num(x, d=2):
-    """numar pentru LaTeX. Semnul minus ramane real (corect in matematica),
-    virgula zecimala se forțeaza cu {,} pentru a evita spatierea din math mode."""
+
+
     if x is None or (isinstance(x, float) and not np.isfinite(x)):
         return "--"
     return f"{x:.{d}f}".replace(".", "{,}")
@@ -21,9 +17,7 @@ def num(x, d=2):
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
-# Etichetele evenimentelor, in engleza, cu anul, ca sa nu confunde tur1_2024 cu
-# tur1_2025 intr-un tabel. Sursa ramane events.csv, in romana; traducerea sta aici
-# ca sa nu se strica daca se regenereaza tabelele.
+
 EN = {
     "covid_urgenta_2020": "COVID state of emergency",
     "locale_2020": "Local elections 2020",
@@ -81,11 +75,28 @@ def main():
     p = pd.read_csv(OUT / "placebo_results.csv")
     g = pd.read_csv(OUT / "group_test.csv")
     s = pd.read_csv(OUT / "placebo_summary.csv").iloc[0]
+
+    mon = ROOT / "monitor" / "outputs"
+    pairs = pd.read_csv(mon / "recovery_pairs.csv")
+    gapp = pd.read_csv(ROOT / "strategy" / "outputs" / "gap_capturable.csv")
+    rc = pd.read_csv(ROOT / "strategy" / "outputs" / "search_reality.csv").iloc[0]
+    cost = pd.read_csv(ROOT / "strategy" / "outputs" / "search2_cost.csv")
+    pw = pd.read_csv(ROOT / "strategy" / "outputs" / "search2_power.csv").iloc[0]
+    best = cost.sort_values("0bps", ascending=False).iloc[0]
+    grid = sorted((c for c in cost.columns if c.endswith("bps")),
+                  key=lambda c: int(c[:-3]))
+    breakeven = None
+    for lo, hi in zip(grid, grid[1:]):
+        a, b = int(lo[:-3]), int(hi[:-3])
+        if best[lo] > 0 >= best[hi]:
+            breakeven = f"{a + (best[lo] / (best[lo] - best[hi])) * (b - a):.0f}"
+            break
+    ev_rec = pd.read_csv(mon / "recovery_events.csv")
+    sh = ev_rec[(ev_rec.move_pct <= -1.0)].drop_duplicates(subset="day")
     ev = pd.read_csv(ROOT / "events.csv")
     intra = pd.read_csv(ROOT / "data" / "intraday_15m.csv", parse_dates=["ts_ro"])
     null = pd.read_csv(OUT / "placebo_null.csv")["pseudo_car3_tr_pct"]
 
-    # ---- cifrele din prose (macros) -------------------------------------------
     sd = null.std(ddof=1); p95 = np.percentile(null.abs(), 95)
     freq3 = 100 * np.mean(null.abs() >= 3.0)
     px = pd.read_csv(ROOT / "data" / "prices_daily.csv", parse_dates=["date"]).pivot(
@@ -93,21 +104,26 @@ def main():
     r = px.pct_change() * 100
     sx = pd.read_csv(ROOT / "data" / "bench_daily.csv", parse_dates=["date"]).set_index("date").sort_index()
     sxf = sx["stoxx_close"].reindex(px.index).ffill().pct_change() * 100
+
+    from analyze import ols_beta
+    _pos = px.index.get_loc(pd.Timestamp("2021-11-25"))
+    beta_est, _ = ols_beta(r["BET"].iloc[max(0, _pos - 60):_pos - 10].values,
+                           sxf.iloc[max(0, _pos - 60):_pos - 10].values)
+    beta_post, _ = ols_beta(r["BET"].iloc[_pos + 2:_pos + 52].values,
+                            sxf.iloc[_pos + 2:_pos + 52].values)
     loc = t[t.event_id == "locale_euro_2024"].iloc[0]
     macros = {
         "NullSd": num(sd), "NullPqfive": num(p95), "NullMax": num(null.abs().max()),
-        "NullFreqThree": num(freq3, 1),
+        "NullFreqThree": num(freq3, 1), "NNull": str(int(s.n_null)),
         "TurTwoCar": num(p[p.event_id == "tur2_2025"].car3_tr.iloc[0]),
         "TurTwoP": num(p[p.event_id == "tur2_2025"].p_empilateric.iloc[0], 3),
         "TurTwoPct": num(p[p.event_id == "tur2_2025"].percentila_abs.iloc[0], 1),
-        "ParlCar": num(p[p.event_id == "parlamentare_2024"].car3_tr.iloc[0]),
         "ParlP": num(p[p.event_id == "parlamentare_2024"].p_empilateric.iloc[0], 3),
-        "TurOneCar": num(p[p.event_id == "tur1_2025"].car3_tr.iloc[0]),
-        "TurOneP": num(p[p.event_id == "tur1_2025"].p_empilateric.iloc[0], 3),        "CiucaCar": num(p[p.event_id == "guvern_ciuca_2021"].car3_tr.iloc[0]),
-        "CiucaP": num(p[p.event_id == "guvern_ciuca_2021"].p_empilateric.iloc[0], 3),
+        "CiucaCar": num(p[p.event_id == "guvern_ciuca_2021"].car3_tr.iloc[0]),
         "CiucaT": num(p[p.event_id == "guvern_ciuca_2021"].t.iloc[0]),
         "CiucaStoxx": num(sxf.loc["2021-11-26"]), "CiucaBet": num(r.loc["2021-11-26", "BET"]),
         "CiucaInvestDay": num(r.loc["2021-11-25", "BET"]),
+        "CiucaBetaEst": num(beta_est), "CiucaBetaPost": num(beta_post),
         "LocaleBet": num(loc.bet_car3), "LocaleTr": num(loc.car3_tr),
         "LocaleT": num(t[t.event_id == "locale_euro_2024"].bet_t3.iloc[0]),
         "CcrCar": num(p[p.event_id == "ccr_anulare_2024"].car3_tr.iloc[0]),
@@ -121,26 +137,55 @@ def main():
         "TlvMay": num(r.loc["2025-05-05", "TLV"]), "BetMay": num(r.loc["2025-05-05", "BET"]),
         "BetFiMay": num(t[t.event_id == "tur1_2025"]["BET-FI_car3"].iloc[0]),
         "NEvents": str(len(t)),
-        # testul agregat (nu sufera de multiplicitate)
+
         "AggP": num(s.p_agregat, 3), "AggPerm": str(int(s.p_perm)),
         "EvMeanAbs": num(s.ev_mean_abs), "NullMeanAbs": num(s.null_mean_abs),
         "AggObs": str(int(s.exceed_observed)), "AggExp": num(s.exceed_expected, 1),
         "AggN": str(int(s.n_events)),
-        # sensibilitate la fereastra de estimare
+
         "RhoWindow": num(s.rho_fereastra_min, 3),
+        "NSens": str(int(s.n_sensibilitate)),
+        "NTested": str(len(p)),
+        "NPfiveWlong": str(int(s["n_p05_w-250"])),
+        "NPfiveWshort": str(int(s["n_p05_w-40"])),
+        "PqWlong": num(s["p95_w-250"]), "PqWshort": num(s["p95_w-40"]),
         "PqPostCovid": num(s.null_p95_postcovid),
-        "NPfivePostCovid": str(int(s.n_p05_postcovid)),
+        "NullMean": num(s.null_mean, 3),
+
+        "RecMedDiff": num(pairs.diferenta.median(), 1),
+        "RecFasterN": str(int((pairs.diferenta < 0).sum())),
+        "RecPairN": str(int(pairs.diferenta.notna().sum())),
+        "RecP": num(pd.read_csv(mon / "recovery_test.csv").p_faster_exact.iloc[0], 2),
+        "RecPolRecovered": f"{int(sh.recovered.mean() * 100)}",
+        "RecPlRecovered": f"{int(pd.read_csv(mon / 'recovery_placebo.csv').recovered.mean() * 100)}",
+
+        "GapShareLo": num(gapp.gap_share_of_car_pct.min(), 0),
+        "GapShareHi": num(gapp.gap_share_of_car_pct.max(), 0),
+        "AfterNewsMin": num(gapp.left_after_news_pct.abs().min(), 2),
+        "AfterNewsMax": num(gapp.left_after_news_pct.abs().max(), 2),
+
+        "BestRule": best.regula.replace("_", " "),
+        "BestGross": num(best["0bps"]), "BestNetFifty": num(best["50bps"]),
+        "BreakevenBps": breakeven,
+        "RealityP": num(rc.p_reality, 3), "NRules": str(int(rc.reguli)),
+        "ReguliTrain": str(int(rc.n_train)), "ReguliTest": str(int(rc.n_test)),
+        "NTradable": str(int(rc.reguli_tradabile)),
+        "LuckChance": f"{round((1 - 0.95 ** int(rc.reguli_tradabile)) * 100)}",
+        "Mde": num(pw.efect_minim_detectabil_pct),
+        "SdTrade": num(pw.sd_tranzactie_pct), "SeTrade": num(pw.se_pct),
+        "NPower": str(int(pw.n_evenimente)),
+        "NNeed": f"{pw.n_necesar_pentru_putere_80:.0f}",
     }
-    # TeX citeste un control word doar pana la primul caracter non-litera, deci
-    # \NullP95 ar fi parsat ca \NullP urmat de "95" -> undefined. Prindem aici.
+
+
     bad = [k for k in macros if not k.isalpha()]
     assert not bad, f"numele de macro TeX trebuie sa fie doar litere: {bad}"
-    # \providecommand, nu \newcommand: un \input accidental de doua ori nu trebuie
-    # sa facă compilarea să moară.
+
+
     write("macros.tex", "".join(
         f"\\providecommand{{\\{k}}}{{{v}}}\n" for k, v in macros.items()))
 
-    # ---- tabel: evenimente ----------------------------------------------------
+
     rows = []
     for _, e in ev.iterrows():
         ed = t[t.event_id == e.event_id]
@@ -151,7 +196,7 @@ def main():
           "\\begin{tabular}{lllc}\n\\toprule\nEvent & Type & Day 0 & Confidence \\\\\n"
           "\\midrule\n" + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
 
-    # ---- tabel: efectele principale (BET, randament de pret) -------------------
+
     majors = ["tur1_2024", "parlamentare_2024", "ccr_anulare_2024", "tur1_2025", "tur2_2025"]
     rows = []
     for eid in majors:
@@ -168,7 +213,7 @@ def main():
           "\\midrule\n" + "\n".join(rows) +
           "\n\\bottomrule\n\\end{tabular}}\n")
 
-    # ---- tabel: viteza intraday ----------------------------------------------
+
     SHOCKS = {"2024-11-25": "tur1_2024", "2025-05-05": "tur1_2025", "2025-05-19": "tur2_2025"}
     rows = []
     for shock, name in SHOCKS.items():
@@ -191,7 +236,7 @@ def main():
           "Shock & Opening gap & Intraday low (local) & Close & Pattern \\\\\n\\midrule\n"
           + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
 
-    # ---- tabel: comparatie indici (randament total) ---------------------------
+
     rows = []
     for eid in majors:
         r_ = t[t.event_id == eid].iloc[0]
@@ -202,7 +247,7 @@ def main():
           "Event & BET-TR & ROTX & BET-FI & BET-NG \\\\\n\\midrule\n"
           + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
 
-    # ---- tabel: placebo -------------------------------------------------------
+
     rows = []
     for _, r_ in p.head(7).iterrows():
         verdict = ("clears the null" if r_.p_empilateric < 0.05 else
@@ -217,18 +262,39 @@ def main():
           "Event & CAR$_3$ & conventional $t$ & empirical $p$ & Placebo verdict \\\\\n\\midrule\n"
           + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
 
-    # ---- tabel: sensibilitate la fereastra de estimare -------------------------
+
     import analyze as A
     rows = []
     for w in A.WINDOWS:
-        v = p[f"p_w{w[1]}"].dropna()
+        v = p[f"p_w{w[0]}"].dropna()
         hit = p.loc[v[v < 0.05].index, "event_id"].map(label)
-        rows.append(f"$[{w[0]},\\;{-w[1]}]$ & {len(v)} & {len(hit)} & "
+        rows.append(f"$[{w[0]},\\;{-w[1]-1}]$ & {len(v)} & {len(hit)} & "
                     f"{', '.join(hit) if len(hit) else '--'} \\\\")
     write("tab_window.tex",
           "{\\footnotesize\\setlength{\\tabcolsep}{4pt}\n"
           "\\begin{tabular}{lrl p{9.6cm}}\n\\toprule\n"
           "Estimation window & $n$ & $p<0{,}05$ & Events \\\\\n\\midrule\n"
+          + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
+
+
+    rows = []
+    for _, r_ in sh.sort_values("move_pct").iterrows():
+        rows.append(f"{label(r_.event_id)} & ${num(r_.move_pct)}\\%$ & "
+                    f"{r_.days_to_recover:.0f} & ${num(r_.further_decline_pct)}\\%$ \\\\")
+    write("tab_recovery.tex",
+          "{\\footnotesize\\setlength{\\tabcolsep}{4pt}\n"
+          "\\begin{tabular}{lrrl}\n\\toprule\n"
+          "Event & Day 0 move & Days to recover & Further decline \\\\\n\\midrule\n"
+          + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
+
+
+    costs = [0, 25, 50, 100, 200]
+    rows = [f"${c}$ bps & ${num(best[f'{c}bps'])}\\%$ \\\\"
+            for c in costs]
+    write("tab_cost.tex",
+          "{\\footnotesize\\setlength{\\tabcolsep}{4pt}\n"
+          "\\begin{tabular}{lr}\n\\toprule\n"
+          "Round-trip cost & Net return per trade \\\\\n\\midrule\n"
           + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}}\n")
 
     print(f"OK -> paper/tables/ ({len(list(TAB.glob('*.tex')))} fisiere, {len(ev)} evenimente)")

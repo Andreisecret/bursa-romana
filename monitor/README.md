@@ -9,10 +9,9 @@ Rulare: `python monitor/recovery.py` (analiza istorică), `python monitor/monito
 
 Toate cele 6 șocuri politice de cel puțin 1% din 2020–2026 și-au refăcut nivelul dinaintea
 căderii în 60 de ședințe. 100%. Dar **exact asta se întâmplă și la căderile fără nicio știre
-politică**: 91% dintre căderile aleatoare de aceeași adâncime se refac, într-o **medie de 8,5
-ședințe față de 13,9 la șocurile politice**.
+politică**: 90% dintre căderile aleatoare de aceeași adâncime se refac.
 
-| șoc | ziua 0 | refacut în | continuă să cadă? |
+| șoc | ziua 0 | refăcut în | continuă să cadă? |
 |---|---|---|---|
 | stare de urgență COVID | −9,58% | 16 șed. | −1,2% |
 | invazia Ucrainei | −4,09% | **37 șed.** | **−13,4%** |
@@ -22,12 +21,16 @@ politică**: 91% dintre căderile aleatoare de aceeași adâncime se refac, înt
 | guvern Bolojan | −1,18% | 6 șed. | −0,5% |
 
 Comparația e **pereche**: fiecare șoc primește propriul set de zile de control, potrivite pe
-adâncime, pentru a nu compara −2% cu −0,7%.
+adâncime, pentru a nu compara −2% cu −0,7%. Pool-ul de control **exclude ședințele din jurul
+oricărui eveniment politic real**, iar nicio cădere nu e extrasă de două ori, deci controlii
+sunt independenți de evenimentele pe care trebuie să le contrazică.
 
-- diferență mediană (eveniment − placebo): **+3,0 ședințe**, adică șocurile politice se refac
+- diferență mediană (eveniment − placebo): **+12,5 ședințe**, adică șocurile politice se refac
   **mai lent**, nu mai repede
-- mai repede în 2 din 5 perechi; la fel sau mai lent în 3
-- permutare pentru ipoteza „se refac mai repede": **p = 0,52**
+- mai repede în 2 din 4 perechi; la fel sau mai lent în 2
+- permutare de semne, ipoteza „se refac mai repede": **p = 1,00 exact** (0,56 bootstrap).
+  Testul e acum unul valid — inversează semnele diferențelor observate și compară cu media
+  reală — dar cu 4 perechi are practic zero putere și nici el nu poate respinge.
 
 ## De ce e o capcană să ajungem la „e doar panică"
 

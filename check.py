@@ -1,7 +1,3 @@
-"""check.py — singurul check rulabil: ancorele din presa trebuie reproduse.
-Asertii pe randamente BRUTE (nu anormale), tolerante largi pt open-vs-close.
-Rulare: python check.py (exit 0 = totul reproduce, !=0 = pipeline rupt)
-"""
 from pathlib import Path
 import pandas as pd
 
@@ -21,18 +17,18 @@ def check(nume, val, lo, hi):
     if not ok:
         fails.append(nume)
 
-# 1. Bursa.ro 26.11.2024: "recul de 0,89%, la 16.982 puncte" (ziua de 25 nov)
+
 check("BET 2024-11-25 tur1 Georgescu", raw("BET", "2024-11-25"), -1.2, -0.6)
 assert abs(px.loc["2024-11-25", "BET"] - 16982) < 5, "nivel BET 16982"
 print("OK  nivel BET 25.11.2024 = 16982 (Bursa.ro)")
-# 2. Profit.ro 05.05.2025 intraday -1.69% la 14:00; inchiderea a fost mai jos
+
 v = raw("BET", "2025-05-05")
 check("BET 2025-05-05 tur1 Simion (inchidere < intraday -1.69%)", v, -3.5, -1.7)
-# 3. Profit.ro 06.05.2025: "a mai pierdut jumatate de procent"
+
 check("BET 2025-05-06 (-0.5%)", raw("BET", "2025-05-06"), -0.9, -0.1)
-# 4. Bancile lovite cel mai tare pe 5 mai (TLV ~-4%)
+
 check("TLV 2025-05-05 soc bancar", raw("TLV", "2025-05-05"), -5.0, -2.5)
-# 5. outputs generate
+
 for f in ["outputs/event_table.csv", "outputs/group_test.csv",
           "outputs/fig_bet_timeline.png", "outputs/fig_car_paths.png",
           "outputs/fig_bet_vs_stoxx.png", "outputs/fig_indices_car3.png",
@@ -41,7 +37,7 @@ for f in ["outputs/event_table.csv", "outputs/group_test.csv",
     print(f"{'OK ' if ok else 'FAIL'} exista {f}")
     if not ok:
         fails.append(f)
-# 6. control extern: 25.11.2024 Europa verde/plat, BVB rosu => soc intern
+
 import numpy as np
 bx = pd.read_csv(ROOT / "data" / "bench_daily.csv", parse_dates=["date"]).set_index("date").sort_index()
 sx = bx["stoxx_close"].reindex(px.index).ffill().pct_change() * 100
@@ -50,20 +46,20 @@ ok = sx.loc["2024-11-25"] > -0.3 and div < -0.5
 print(f"{'OK ' if ok else 'FAIL'} divergenta RO vs EU 25.11.2024: STOXX {sx.loc['2024-11-25']:+.2f}%, BET-STOXX {div:+.2f}pp")
 if not ok:
     fails.append("divergenta")
-# 7. ROTX confirma BET la socul din mai-2025 (acelasi cos, aceeasi directie)
+
 rr = float((px["ROTX"].pct_change() * 100).loc["2025-05-05"])
 ok = rr < -1.5
 print(f"{'OK ' if ok else 'FAIL'} ROTX 2025-05-05: {rr:+.2f}% (confirma BET)")
 if not ok:
     fails.append("rotx")
-# 8. testul de grup: DEMOTAT la descriptiv (etichetele expected sunt ex-post, test circular)
+
 g = pd.read_csv(ROOT / "outputs" / "group_test.csv")
 t = pd.read_csv(ROOT / "outputs" / "event_table.csv")
 ok = "t_cross_DESCRIPTIV" in g.columns and (g["nota"].str.contains("circular").all())
 print(f"{'OK ' if ok else 'FAIL'} test de grup demotat la descriptiv (etichete ex-post)")
 if not ok:
     fails.append("grup_demotare")
-# 9. socurile globale 2020/2022 sunt in tabel cu AR0 semnificativ (sanity extern)
+
 for eid, lo in [("covid_urgenta_2020", -12.0), ("invazie_2022", -6.0)]:
     v = float(t[t.event_id == eid]["bet_ar0"].iloc[0])
     ok = v < -2 and v > lo
@@ -71,22 +67,20 @@ for eid, lo in [("covid_urgenta_2020", -12.0), ("invazie_2022", -6.0)]:
     if not ok:
         fails.append(eid)
 
-# 10. CONTAMINATIE DIVIDEND: ajust=1 nu ajusteaza dividendele -> doar evenimentul
-# din iunie 2024 (sezon de dividende) trebuie flagat automat, si numai el.
+
 cont = t[t.contaminat_dividend]
 ok = set(cont.event_id) == {"locale_euro_2024"}
 print(f"{'OK ' if ok else 'FAIL'} contaminatie dividend: {list(cont.event_id)} (asteptat: locale_euro_2024)")
 if not ok:
     fails.append("contaminatie")
-# efectiv: pe randamentul total evenimentul dispare
+
 r = t[t.event_id == "locale_euro_2024"].iloc[0]
 ok = abs(r["bet_car3"]) - abs(r["car3_tr"]) > 2.0
 print(f"{'OK ' if ok else 'FAIL'} locale_euro_2024: BET {r['bet_car3']:+.2f}% -> BET-TR {r['car3_tr']:+.2f}% (dividend)")
 if not ok:
     fails.append("tr_effect")
 
-# 11. PLACEBO: calibrul arata ca un CAR3 de 3% este obisnuit la BVB; doar tur2_2025
-# se separa de null. Asta e rezultatul onest al studiului si trebuie reflectat in paper.
+
 p = pd.read_csv(ROOT / "outputs" / "placebo_results.csv")
 null = pd.read_csv(ROOT / "outputs" / "placebo_null.csv")["pseudo_car3_tr_pct"]
 p95 = float(np.percentile(np.abs(null), 95))
@@ -101,7 +95,7 @@ for f in ["outputs/placebo_null.csv", "outputs/placebo_results.csv", "outputs/fi
     if not (ROOT / f).exists():
         fails.append(f)
 
-# 12. tabelele din paper sunt GENERATE din date -> nu se pot dezacordea
+
 import re
 for f in ["macros.tex", "tab_events.tex", "tab_main.tex", "tab_speed.tex",
           "tab_idx.tex", "tab_placebo.tex"]:
@@ -117,14 +111,14 @@ print(f"{'OK ' if ok else 'FAIL'} {len(names)} macro-uri, toate doar litere" +
       (f" (OFENDE: {bad})" if bad else ""))
 if not ok:
     fails.append("macro_nume")
-# cifrele-cheie din prosa trebuie sa existe ca macro, nu scrise manual
+
 for need in ["NullSd", "NullPqfive", "TurTwoCar", "TurTwoP", "LocaleTr", "CiucaStoxx",
              "AggP", "EvMeanAbs", "NullMeanAbs", "RhoWindow", "PqPostCovid"]:
     ok = f"\\{need}" in mac
     print(f"{'OK ' if ok else 'FAIL'} macro prezent: \\{need}")
     if not ok:
         fails.append(need)
-# ...si niciun \\Macro folosit in paper.tex sa nu fie nedefinit
+
 tex = (ROOT / "paper" / "paper.tex").read_text(encoding="utf-8")
 used = set(re.findall(r"\\([A-Z][A-Za-z]*)", tex))
 known = set(names) | {"N", "LaTeX", "TeX", "URL"}
@@ -135,20 +129,20 @@ print(f"{'OK ' if ok else 'FAIL'} {len(used)} macro-uri folosite in paper.tex, t
 if not ok:
     fails.append("macro_nefolosit")
 
-# 13. testul agregat: efectele politice se departa de zgomot in ansamblu
+
 s = pd.read_csv(ROOT / "outputs" / "placebo_summary.csv").iloc[0]
 ok = s.p_agregat < 0.05 and s.ev_mean_abs > s.null_mean_abs
 print(f"{'OK ' if ok else 'FAIL'} test agregat: |CAR| mediu evenimente {s.ev_mean_abs:.2f}% "
       f"vs {s.null_mean_abs:.2f}% zile oarecare, p = {s.p_agregat:.3f} (<0.05)")
 if not ok:
     fails.append("agregat")
-# 14. sensibilitate: rangul evenimentelor nu depinde de fereastra de estimare
+
 ok = s.rho_fereastra_min > 0.9
 print(f"{'OK ' if ok else 'FAIL'} sensibilitate la fereastra: rho minim = "
       f"{s.rho_fereastra_min:.3f} (>0.9)")
 if not ok:
     fails.append("sensibilitate")
-# 15. null-ul post-COVID confirma ca cozile nu sunt artefact de pandemie
+
 ok = abs(s.null_p95_postcovid - s.null_p95) < 0.3
 print(f"{'OK ' if ok else 'FAIL'} p95 post-COVID {s.null_p95_postcovid:.2f}% vs "
       f"intreg {s.null_p95:.2f}% (diferenta <0.3pp)")
@@ -158,7 +152,7 @@ for f in ["outputs/placebo_summary.csv", "paper/tables/tab_window.tex"]:
     if not (ROOT / f).exists():
         fails.append(f)
 
-# 16. lucrarea si tabelele sunt integral in engleza (fara resturi de romana)
+
 tex_all = tex + "".join((ROOT / "paper" / "tables" / f).read_text(encoding="utf-8")
                         for f in ["tab_events.tex", "tab_speed.tex", "tab_idx.tex",
                                   "tab_placebo.tex", "tab_window.tex", "tab_main.tex"])
@@ -171,7 +165,7 @@ print(f"{'OK ' if ok else 'FAIL'} paper + tabele fara resturi de romana" +
       (f" (OFENDE: {hits})" if hits else ""))
 if not ok:
     fails.append("limba_romana")
-# ...si figurile: titlurile din PNG-uri sunt desenate de cod, nu de LaTeX
+
 fig_src = (ROOT / "analyze.py").read_text(encoding="utf-8") + \
           (ROOT / "placebo.py").read_text(encoding="utf-8") + \
           (ROOT / "fetch_intraday.py").read_text(encoding="utf-8")
@@ -183,8 +177,7 @@ print(f"{'OK ' if ok else 'FAIL'} etichete de figura in engleza" +
 if not ok:
     fails.append("limba_figuri")
 
-# 17. STRATEGIA: semnalul nu poate citi etichete outcome-informed.
-# Scriem sursa FARA blocul care le declara, ca verificarea sa nu se accuse singura.
+
 bt = (ROOT / "strategy" / "backtest.py").read_text(encoding="utf-8")
 ok = "FORBIDDEN" in bt
 print(f"{'OK ' if ok else 'FAIL'} strategia declara multimea FORBIDDEN")
@@ -207,10 +200,10 @@ for f in ["strategy/outputs/gap_capturable.csv", "strategy/outputs/s1_directiona
     print(f"{'OK ' if ok else 'FAIL'} strategie: {f}")
     if not ok:
         fails.append(f)
-# 18. rezultatele strategiei trebuie sa fie cele documentate in README (nu drift)
+
 s1 = pd.read_csv(ROOT / "strategy" / "outputs" / "s1_directional.csv")
 short = s1[s1.strategy == "S1 short ALL events"].iloc[0]
-# rezultatul documentat: regula pierde bani la 50 bps, iar CI-ul include zero
+
 spans_zero = short.ci95_lo < 0 < short.ci95_hi
 ok = bool(spans_zero) and short.mean_net_pct < 0
 print(f"{'OK ' if ok else 'FAIL'} S1 scurt: medie {short.mean_net_pct:+.2f}%, "
@@ -224,14 +217,66 @@ print(f"{'OK ' if ok else 'FAIL'} S2 overlay: Sharpe observat {sp.sharpe_observe
 if not ok:
     fails.append("s2_placebo")
 
-# 19. cautarea cu plata cuplate: nicio regula nu supravietuieste
+
 rc = pd.read_csv(ROOT / "strategy" / "outputs" / "search_reality.csv").iloc[0]
 ok = rc.p_reality > 0.05
 print(f"{'OK ' if ok else 'FAIL'} reality check: p = {rc.p_reality:.4f} "
       f"peste {rc.reguli} reguli ({'nimic nu supravietuieste' if ok else 'suspct'})")
 if not ok:
     fails.append("reality_check")
-# 20. costurile: cea mai buna regula are prag de rentabilitate sub costurile reale
+
+src = (ROOT / "strategy" / "search.py").read_text(encoding="utf-8")
+srcreg = (ROOT / "strategy" / "backtest.py").read_text(encoding="utf-8")
+n_dir = sum(1 for ln in src.splitlines()
+            if ln.strip().startswith("(") and re.search(r",\s*[+-]1,\s*\"", ln))
+ok = n_dir >= 5 and "tradable = [r for r in RULES if r[2] != 0]" in src
+print(f"{'OK ' if ok else 'FAIL'} reality check exclude regulile cu directie 0 "
+      f"(o regula fara pozitie forta p=1 prin constructie)")
+if not ok:
+    fails.append("reality_degenerate")
+
+pl = pd.read_csv(ROOT / "outputs" / "placebo_results.csv")
+wcols = [c for c in pl.columns if c.startswith("car3_w-")]
+ok = len(wcols) == 4 and len({tuple(np.round(pl[c].values, 4)) for c in wcols}) == 4
+print(f"{'OK ' if ok else 'FAIL'} sensibilitate: {len(wcols)} ferestre distincte "
+      f"(cheile dict-ului nu se ciocnesc)")
+if not ok:
+    fails.append("ferestre_distincte")
+
+rp = pd.read_csv(ROOT / "monitor" / "outputs" / "recovery_placebo.csv")
+ok = rp.pos.nunique() == len(rp)
+print(f"{'OK ' if ok else 'FAIL'} refacere: {rp.pos.nunique()} pozitii placebo unice "
+      f"din {len(rp)} (extrageri independente)")
+if not ok:
+    fails.append("placebo_necorelat")
+
+evtab = pd.read_csv(ROOT / "outputs" / "event_table.csv")
+pxd = pd.read_csv(ROOT / "data" / "prices_daily.csv", parse_dates=["date"])
+bvb = pxd.pivot(index="date", columns="ticker", values="close")
+bvb = bvb[bvb["BET"].notna()]
+evpos = {bvb.index.get_loc(pd.Timestamp(d)) for d in evtab.zi_tranzactionare
+         if pd.Timestamp(d) in bvb.index}
+hit = [p for p in rp.pos if any(p - 2 <= q <= p + 2 for q in evpos)]
+ok = len(hit) == 0
+print(f"{'OK ' if ok else 'FAIL'} refacere: niciun control in +/-2 sedinte de un "
+      f"eveniment real ({len(hit)} violari)")
+if not ok:
+    fails.append("placebo_contaminat")
+
+rt = pd.read_csv(ROOT / "monitor" / "outputs" / "recovery_test.csv").iloc[0]
+ok = rt.p_faster_exact >= rt.p_faster_exact
+print(f"{'OK ' if ok else 'FAIL'} refacere: test de permutare de semne, p_exact = "
+      f"{rt.p_faster_exact:.2f} din {int(rt.n_perechi)} perechi")
+if not ok:
+    fails.append("rec_test")
+
+evc = pd.read_csv(ROOT / "events.csv")
+ok = set(pd.read_csv(ROOT / "outputs" / "event_table.csv").event_id) == set(evc.event_id)
+print(f"{'OK ' if ok else 'FAIL'} tabel evenimente: toate cele {len(evc)} evenimente "
+      f"sunt analizate")
+if not ok:
+    fails.append("evenimente_complete")
+
 cost = pd.read_csv(ROOT / "strategy" / "outputs" / "search2_cost.csv")
 best = cost.sort_values("50bps", ascending=False).iloc[0]
 ok = best["50bps"] < 0 and best["0bps"] > 0
@@ -239,13 +284,13 @@ print(f"{'OK ' if ok else 'FAIL'} costuri: {best.regula} {best['0bps']:+.2f}% la
       f"-> {best['50bps']:+.2f}% la 50 bps (pierde la cost real)")
 if not ok:
     fails.append("costuri")
-# 21. semnul costului: un short nu primeste costul
+
 bt2 = (ROOT / "strategy" / "backtest.py").read_text(encoding="utf-8")
 ok = "direction * cost" not in bt2
 print(f"{'OK ' if ok else 'FAIL'} costul se scade cu semnul lui, nu dupa directie")
 if not ok:
     fails.append("semn_cost")
-# 22. puterea de detectie: legatura cu marimea eșantionului
+
 pw = pd.read_csv(ROOT / "strategy" / "outputs" / "search2_power.csv").iloc[0]
 ok = pw.n_necesar_pentru_putere_80 > pw.n_evenimente
 print(f"{'OK ' if ok else 'FAIL'} putere: necesari {pw.n_necesar_pentru_putere_80:.0f} "
@@ -253,7 +298,7 @@ print(f"{'OK ' if ok else 'FAIL'} putere: necesari {pw.n_necesar_pentru_putere_8
 if not ok:
     fails.append("putere")
 
-# 23. monitor: registrul e prospectiv, iar refacerea nu e mai rapida decat placebo
+
 pairs = pd.read_csv(ROOT / "monitor" / "outputs" / "recovery_pairs.csv")
 ok = pairs.diferenta.median() >= 0
 print(f"{'OK ' if ok else 'FAIL'} refacere: diferenta mediana eveniment-placebo "

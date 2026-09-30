@@ -1,7 +1,3 @@
-"""fetch_bench.py — benchmark extern STOXX Europe 600 (^STOXX) via Yahoo chart API.
-Folosit ca model de piata pentru BET: separa socul intern (RO) de zilele global-rosii.
-Utilizare: python fetch_bench.py -> data/bench_daily.csv (date, stoxx_close)
-"""
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -33,7 +29,7 @@ def main():
     p1 = datetime.fromisoformat(a.frm).replace(tzinfo=timezone.utc)
     now = datetime.now(timezone.utc)
     rows = []
-    cur = p1  # Yahoo limiteaza ~2 ani per request -> paginare anuala
+    cur = p1
     while cur < now:
         nxt = min(datetime(cur.year + 1, 1, 1, tzinfo=timezone.utc), now)
         rows += fetch_range(sess, cur, nxt)

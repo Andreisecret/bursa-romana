@@ -1,19 +1,3 @@
-"""search.py - cauta o regula EX-ANTE care batе placebo-ul, cu plata pentru cautare.
-
-Regulile sunt declarate in RULES si fixate INAINTE de rulare. Nu se adauga reguli
-dupa ce vedem care merge, pentru ca asta e exact cautarea fara penalizare care
-produce backtesturi false. Daca tot adaugi, plateste pentru K reguli cu
-reality check (max-statistica peste toate regulile, nu doar peste cea mai buna).
-
-Split cronologic: antrenament <= TRAIN_END, test > TRAIN_END. O regula care
-castiga doar pe antrenament nu e o regula.
-
-Cine cauta alfa pe 24 de puncte gaseste ceva: cu K=12 reguli, sansa ca cea mai
-buna sa para semnificativa doar din noroc e 1-(0.95)^K, adica 46%. De aceea
-testul de mai jos plătește pentru K.
-
-Utilizare: python strategy/search.py [--n-perm 5000] [--cost-bps 50]
-"""
 import argparse
 import sys
 from pathlib import Path
@@ -34,11 +18,7 @@ RO = ZoneInfo("Europe/Bucharest")
 TRAIN_END = "2023-12-31"
 HOLD = (-1, 1)
 
-# ---- REGULI PRE-DECLARATE. Nu se modifica dupa rulare. -----------------------
-# Fiecare: (nume, tip eveniment eligibil sau None, directie, intrare, iesire)
-#   intrare: 'pre' = cu o sedinta inainte (anticipativ, realizabil)
-#            'open' = la deschiderea zilei de eveniment (reactie la stire)
-#   directie: +1 long, -1 short, 0 expunere 0 (overlay de risc)
+
 RULES = [
     ("pre_short_all",      None,            -1, "pre"),
     ("pre_long_all",       None,            +1, "pre"),
@@ -76,16 +56,9 @@ def positions(px, ev):
 
 
 def session_return(r, p, direction, entry, cost):
-    """Randamentul net pe fereastra evenimentului, cu intrarea aleasa.
-    'pre'  cumpara cu o sedinta inainte si tine pana la inchiderea zilei +1
-    'open' cumpara la deschiderea zilei 0 (reactie la stire) si tine pana la +1
-    Ambele folosesc aceeasi fereastra de iesire, ca sa se compare doar
-    diferenta de intrare.
 
-    Costul se scade ORIUNDE, cu semnul lui: un short plateste la inchidere, nu
-    primeste. Scaderea lui `direction * cost` ar fi insemnat ca un short primeste
-    costul, deci randamentul crestea cu costurile."""
-    if direction == 0:                      # overlay: expunere 0, deci 0
+
+    if direction == 0:
         return 0.0
     if entry == "pre":
         a, b = p + HOLD[0], p + HOLD[1]
@@ -150,10 +123,7 @@ def main():
     print("=" * 92)
     print(tab.to_string(index=False, float_format=lambda x: f"{x:+.3f}"))
 
-    # ---- REALITY CHECK: maximum statistic ------------------------------------
-    # Pentru fiecare permutare luam ferestre ALEATOARE cu acelasi numar de
-    # evenimente, per regula, si pastram cea mai mare t. Distribuia maximului
-    # e null-ul corect pentru "cea mai buna dintre K reguli".
+
     n_all = len(pos)
     lo, hi = 61, len(r) - 3
     offs = np.arange(HOLD[0], HOLD[1] + 1)
@@ -162,15 +132,13 @@ def main():
     n_per_rule = {name: max(2, int(np.sum([1 for e in pos
                      if rule[1] is None or e["tip"] in rule[1]])))
                   for name, rule in zip([x[0] for x in RULES], RULES)}
+    tradable = [r for r in RULES if r[2] != 0]
     for k in range(a.n_perm):
         best = -np.inf
-        for rule in RULES:
+        for rule in tradable:
             direction, entry = rule[2], rule[3]
             n_take = n_per_rule[rule[0]]
             picks = rng.integers(lo, hi, size=n_take)
-            if direction == 0:
-                best = max(best, 0.0)
-                continue
             idx = picks[:, None] + (np.arange(0, 2) if entry == "open"
                                     else offs)[None, :]
             if entry == "open":
@@ -179,34 +147,43 @@ def main():
             v = g - cost
             best = max(best, tstat(v))
         max_null[k] = best
-    obs_max = max(obs_t.values())
+    obs_t_tradable = {n: v for n, v in obs_t.items() if n in {r[0] for r in tradable}}
+    obs_max = max(obs_t_tradable.values())
+    n_tradable = len(tradable)
+    degenerate = obs_max <= 0
     p_reality = float((1 + np.sum(max_null >= obs_max)) / (a.n_perm + 1))
 
     print("\n" + "=" * 92)
-    print("REALITY CHECK (max-statistica peste toate cele "
-          f"{len(RULES)} reguli)")
+    print("REALITY CHECK (max-statistica peste cele "
+          f"{n_tradable} reguli cu directie)")
     print("=" * 92)
-    print(f"  cea mai buna t observata: {obs_max:.2f}  ({max(obs_t, key=obs_t.get)})")
+    print(f"  cea mai buna t observata: {obs_max:.2f}  ({max(obs_t_tradable, key=obs_t_tradable.get)})")
     print(f"  max-statistica nula:    {max_null.mean():.2f} in medie, "
           f"p95 {np.percentile(max_null, 95):.2f}, max {max_null.max():.2f}")
-    print(f"  p (reality check) = {p_reality:.4f}")
-    print(f"  sansa de a gasi ceva doar din noroc cu {len(RULES)} reguli: "
-          f"{(1 - 0.95 ** len(RULES)) * 100:.0f}%")
+    if degenerate:
+        print(f"  p (reality check) = {p_reality:.4f} — DEGENERAT: cea mai buna t observata")
+        print("  e negativa, deci orice maxim nul o depaseste. Testul nu poate distinge")
+        print("  nimic; concluzia vine din faptul ca nicio regula nu are medie pozitiva.")
+    else:
+        print(f"  p (reality check) = {p_reality:.4f}")
+    print(f"  sansa de a gasi ceva doar din noroc cu {n_tradable} reguli: "
+          f"{(1 - 0.95 ** n_tradable) * 100:.0f}%")
 
     verdict = "supravietuieste" if p_reality < 0.05 else "NU supravietuieste"
-    print(f"\n  VERDICT: {verdict} cautarii de regula cu {len(RULES)} tentative.")
+    print(f"\n  VERDICT: {verdict} cautarii de regula cu {n_tradable} reguli tradabile.")
 
-    # split: castiga doar pe antrenament?
+
     tr_best = tab.iloc[0]
     print(f"\n  cea mai buna pe intreaga perioada: {tr_best.regula} "
           f"(train {tr_best.medie_tr_pct:+.2f}%, test {tr_best.medie_te_pct:+.2f}%)")
     if np.isfinite(tr_best.medie_te_pct) and tr_best.medie_te_pct < 0:
         print("  => semnul se inverseaza in afara sample-ului. Nu e o regula.")
 
-    pd.DataFrame([{"reguli": len(RULES), "t_max_observata": obs_max,
+    pd.DataFrame([{"reguli": len(RULES), "reguli_tradabile": n_tradable,
+                   "t_max_observata": obs_max,
                    "max_null_mean": float(max_null.mean()),
                    "max_null_p95": float(np.percentile(max_null, 95)),
-                   "p_reality": p_reality, "verdict": verdict,
+                   "p_reality": p_reality,                    "verdict": "degen" if degenerate else verdict,
                    "n_train": len(train), "n_test": len(test),
                    "cost_bps": a.cost_bps}]).to_csv(OUT / "search_reality.csv", index=False)
     print(f"\nOK -> {OUT}/ (search_rules.csv, search_reality.csv)")

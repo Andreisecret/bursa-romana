@@ -25,37 +25,40 @@ Exchange react to political news? We apply an event study to \NEvents{} events o
 2020--2026, using daily quotes for the BET index, 8 liquid stocks and 4 complementary
 indices, plus 15-minute bars around the three major electoral shocks.
 
-\noindent\textbf{Speed.} The response to electoral shocks forms at the open of the first
-session after the event. In November 2024 the intraday low came 15 minutes after the open.
+\noindent\textbf{Speed.} The response forms at the open of the first session after the event.
+In November 2024 the lowest 15-minute bar came 15 minutes after the open.
 
-\noindent\textbf{Magnitude, in two senses.} Results are calibrated with a placebo test of 500
-pseudo-events run through an identical estimator. The null distribution of three-day
-cumulative abnormal returns has $\sigma = \NullSd\%$ and a 95th percentile of
-$\NullPqfive\%$, so a 3\% move over three days occurs on roughly $\NullFreqThree\%$ of BVB
-sessions with no political news at all. Read one event at a time, three of the \NEvents{}
-events clear the 5\% threshold, the second-round presidential victory being the clearest at
-$\TurTwoCar\%$ and $p = \TurTwoP$. Read in aggregate, political events do depart significantly
-from ordinary noise: mean absolute movement on event days is $\EvMeanAbs\%$ against
-$\NullMeanAbs\%$ on ordinary days, $p = \AggP$ in a permutation test, with $\AggObs$ events
-above the 95th percentile against $\AggExp$ expected by chance alone.
+\noindent\textbf{Magnitude, in two senses.} Calibrated with a placebo test of \NNull{}
+pseudo-events run through an identical estimator, the null distribution of three-day cumulative
+abnormal returns has $\sigma = \NullSd\%$ and a 95th percentile of $\NullPqfive\%$, so a 3\%
+move over three days occurs in roughly $\NullFreqThree\%$ of windows drawn from sessions with
+no political news at all. Read one event at a time, three of the \NTested{} testable events
+clear the 5\% threshold, the second-round presidential victory being the clearest. Read in
+aggregate, political events do depart from ordinary noise: mean absolute movement is
+$\EvMeanAbs\%$ on event days against $\NullMeanAbs\%$ on ordinary days, $p = \AggP$ in a
+permutation test.
 
 \noindent\textbf{Robustness.} Re-running the placebo test with four estimation windows, from
-40 to 250 sessions, leaves the ranking of events unchanged (rank correlation
-$\RhoWindow$). Restricting the null to the post-COVID regime gives a 95th percentile of
-$\PqPostCovid\%$, essentially the full-period value, so the fat tails are not an artifact of
-the pandemic.
+40 to 250 sessions, leaves the conclusion unchanged but not the details: the lowest rank
+correlation across windows is $\RhoWindow$ and the count of events at $p < 0.05$ moves between
+$\NPfiveWshort$ and $\NPfiveWlong$. Restricting the null to the post-COVID regime gives a 95th
+percentile of $\PqPostCovid\%$, essentially the full-period value, so the fat tails are not an
+artifact of the pandemic.
 
-\noindent\textbf{Cross-section.} The large electoral shocks are domestic: STOXX Europe 600
-was flat or slightly positive on the event days while BET diverged sharply. Banks absorb the
-first blow, with TLV at $\TlvMay\%$ in a single session.
+\noindent\textbf{Recovery and tradability.} All \RecPolRecovered\% of political drops of at
+least 1\% return to the pre-shock close within 60 sessions, and so do \RecPlRecovered\% of
+random drops of matched depth, a median $\RecMedDiff$ sessions \emph{faster} on the control
+side and not significantly ($\RecP$, $\RecPairN$ pairs). The opening gap absorbs
+$\GapShareLo$--$\GapShareHi$\% of the three-day move, and the best of \NRules{} pre-declared
+rules earns $\BestGross\%$ gross but $\BestNetFifty$\% net at 50 basis points, with breakeven
+at $\BreakevenBps$ basis points.
 
-\noindent\emph{Secondary contribution, methodological.} Three of the most eye-catching results
-of an ordinary event study turn out to be measurement failures rather than market phenomena.
-A fixed estimation window that lands in a calm regime inflates every $t$-statistic at once.
-The public BVB feed's adjustment flag does not correct for dividends, so ex-dividend windows
-are contaminated. A market control estimated in calm conditions can turn a global crash day
-into a fictitious domestic effect. Each of the three produced results in this study that,
-taken at face value, would have supported wrong conclusions.
+\noindent\emph{Methodological contribution.} Three of the most eye-catching results of an
+ordinary event study turn out to be measurement failures rather than market phenomena. A fixed
+estimation window that lands in a calm regime inflates every $t$-statistic at once. The public
+BVB feed's adjustment flag does not correct for dividends, so ex-dividend windows are
+contaminated. A market control estimated in calm conditions can turn a global crash day into a
+fictitious domestic effect.
 \end{abstract}
 
 \section{Data and method}
@@ -120,7 +123,7 @@ receives a two-sided empirical $p$-value on $|CAR|$.
 
 Two further tests follow from the same null. The aggregate test asks whether mean absolute
 movement is larger on event days than on ordinary days, which sidesteps the multiple-comparisons
-problem of examining 24 events individually. The window-sensitivity test re-runs the whole
+problem of examining \NTested{} events individually. The window-sensitivity test re-runs the whole
 calibration under four different estimation windows, which addresses the paper's own objection
 that a fixed window may be unrepresentative.
 
@@ -129,7 +132,7 @@ that a fixed window may be unrepresentative.
 \subsection{Speed: the response forms at the open}
 
 Table~\ref{tab:speed} and Figure~\ref{fig:intra} summarise the 15-minute bars. On 25 November
-2024 the opening gap was $-1.57\%$, the intraday low of $-1.84\%$ was reached at 10:15, and
+2024 the opening gap was $-1.57\%$, the lowest 15-minute bar, $-1.84\%$, was reached at 10:15, and
 the close recovered to $-0.89\%$. On 5 May 2025 the $-2.13\%$ opening gap deepened
 continuously into the close. On 19 May 2025, in the positive direction, almost the entire
 gain formed at the open.
@@ -185,14 +188,14 @@ Section~\ref{sec:masurari}.
 \label{fig:stoxx}
 \end{figure}
 
-\subsection{Placebo calibration}
+\subsection{Calibrating the magnitude}
 
-The placebo test produces the most consequential result in the paper, because it recalibrates
-the reading of everything else. The null distribution of CAR$[-1,+1]$ has a mean of $-0.03\%$
-and $\sigma = \NullSd\%$, with $|CAR_3|$ at the 95th percentile of $\NullPqfive\%$ and a
-maximum of $\NullMax\%$. At BVB a 3\% move over three sessions occurs in $\NullFreqThree\%$ of
-sessions with no political news, so the effective detectability threshold for a political
-event is of order 4\%.
+The placebo test recalibrates the reading of everything else. The null distribution of
+CAR$[-1,+1]$ has a mean of $\NullMean\%$ and $\sigma = \NullSd\%$, with $|CAR_3|$ at the 95th
+percentile of $\NullPqfive\%$ and a maximum of $\NullMax\%$. A 3\% move over three sessions
+occurs in $\NullFreqThree\%$ of the $\NNull$ pseudo-event windows drawn from sessions with no
+political news at all, so the effective detectability threshold for a political event is of
+order 4\%.
 
 \begin{table}[H]
 \centering
@@ -201,25 +204,25 @@ event is of order 4\%.
 \input{tables/tab_placebo}
 \end{table}
 
-Of \NEvents{} political events over six and a half years, three clear the 5\% threshold: the
-second-round presidential victory in May 2025 at $\TurTwoCar\%$ and $p = \TurTwoP$
-(percentile $\TurTwoPct$), the Constitutional Court's annulment of the election at
-$\CcrCar\%$ and $p = \CcrP$, and the Fitch outlook revision at $-\FitchCar\%$ and
+Of the \NTested{} of \NEvents{} political events that have a full estimation window, three clear
+the 5\% threshold: the second-round presidential victory in May 2025 at $\TurTwoCar\%$ and
+$p = \TurTwoP$ (percentile $\TurTwoPct$), the Constitutional Court's annulment of the election
+at $\CcrCar\%$ and $p = \CcrP$, and the Fitch outlook revision at $-\FitchCar\%$ and
 $p = \FitchP$. The December 2024 parliamentary elections sit at $p = \ParlP$, inside the
-ordinary range, though the conventional $t$-test would have reported them as significant.
+ordinary range, though the conventional $t$-test would have reported them as significant. The
+earliest event, the March 2020 state of emergency, falls inside the first 60 sessions and
+cannot be estimated; it is the largest single move in the sample, so the exclusion works
+against the result rather than for it.
 
-\subsection{The aggregate test: do political news move the market overall?}
-
-Per-event tests suffer from multiple comparisons: with \NEvents{} events and a 5\% threshold,
-roughly one would clear by chance. The aggregate test avoids the problem by asking the
-question directly, namely whether mean absolute movement is larger on event days.
-
-Across the \AggN{} distinct event sessions, mean $|CAR|$ is $\EvMeanAbs\%$, against
-$\NullMeanAbs\%$ on sessions without an event. We compared the two through \AggPerm{} random
-draws from the null, and the difference has $p = \AggP$. Three events pass the 95th percentile
-against $\AggExp$ expected from chance alone. The conclusion, in the form that survives these
-tests, is that political news produces larger movements at BVB than background noise, while
-the error margin on any single event is too wide to separate it from noise.
+Read one event at a time, that is a thin result. Read in aggregate, the effect is there.
+Per-event tests suffer from multiple comparisons, and with \NTested{} events at a 5\% threshold
+roughly one would clear by chance. The aggregate test asks the question directly, whether mean
+absolute movement is larger on event days. Across the \AggN{} distinct event sessions, mean
+$|CAR|$ is $\EvMeanAbs\%$ against $\NullMeanAbs\%$ on sessions without an event. Compared
+through $\AggPerm$ random draws from the null, the difference has $p = \AggP$. $\AggObs$ events
+pass the 95th percentile against $\AggExp$ expected from chance alone. Political news produces
+larger movements than background noise, and the error margin on any single event is too wide
+to separate it from noise.
 
 \begin{figure}[H]
 \centering
@@ -232,7 +235,8 @@ the error margin on any single event is too wide to separate it from noise.
 
 The window $[-60,-11]$ was an arbitrary choice, and the whole problem identified above stems
 from its possibly landing in an unusual regime. Table~\ref{tab:window} re-runs the complete
-placebo test with four windows, from 40 to 250 sessions before the event.
+placebo test with four windows, from 40 to 250 sessions before the event. Only \NSens{} of the
+\NTested{} events have enough history for the longest of them.
 
 \begin{table}[H]
 \centering
@@ -241,33 +245,146 @@ placebo test with four windows, from 40 to 250 sessions before the event.
 \input{tables/tab_window}
 \end{table}
 
-The set of events passing the threshold does not change at all, and the rank correlation across
-windows is $\RhoWindow$, so the conclusion does not depend on the window. Two details still
-deserve mention. The number of events reaching 5\% rises from three to four as the window
-lengthens, because the null's 95th percentile falls from $\NullPqfive\%$ to roughly 3.4\%.
-And restricting the calculation to the post-COVID regime, excluding the 2020 and 2021
-restrictions, gives a 95th percentile of $\PqPostCovid\%$, practically identical to the
-full-period value: the fat tails of the distribution are not an artifact of the pandemic.
+The conclusion does not depend on the window, but the fine detail does. The lowest rank
+correlation across the four windows is $\RhoWindow$, so the ordering is close to but not
+exactly stable. The count of events at $p < 0.05$ rises from $\NPfiveWshort$ on the shortest
+window to $\NPfiveWlong$ on the longest, driven by the null's 95th percentile, which moves from
+$\PqWshort\%$ to $\PqWlong\%$. A reader who wanted the shortest count could take the
+shortest window and a reader who wanted six could take the longest. That the two ends of the
+range both include the May 2025 run-off, the court annulment and the Fitch revision is the
+robust part; the exact count is a property of the calibration rather than of the data.
+Restricting the calculation to the post-COVID regime gives a 95th percentile of
+$\PqPostCovid\%$, so the fat tails are not an artifact of the pandemic.
+
+One confound belongs here rather than in a footnote. The longest window needs 250 sessions of
+history, so its null is built from sessions that all postdate the 2020 crash, and its 95th
+percentile is therefore lower partly because the sample excludes the volatility of the
+pandemic and not only because the window is longer. The four percentiles above are not
+comparable to each other with total precision, and we would rather say so than attribute the
+whole movement to the window.
 
 \subsection{Group statistics, reported as description}
 
 Mean CAR$[-1,+1]$ across domestic news with an expected negative sign is $\NegMean\%$ over
 $\NegN$ events, and $\TrioMean\%$ for the 2024--2025 electoral trio. We report both as
-description of the class rather than as inference. The expected-sign labels were assigned by
-the researcher with knowledge of the outcomes, so any test built on that classification is
-circular by construction. A legitimate test would require a prospective register of events,
-announced before they occur.
+description of the class rather than as inference, because the expected-sign labels were
+assigned by the researcher with knowledge of the outcomes, so any test built on that
+classification is circular by construction.
 
 Anticipated events do not move the market. The 2021 no-confidence motion that ousted the
-C\^{\i}țu government with 281 votes, the largest such vote in the country's history, leaves a
+C\^{\i}È›u government with 281 votes, the largest such vote in the country's history, leaves a
 CAR of $-0.19\%$. The December 2020 parliamentary elections, in which AUR surprised, leave
 $-0.18\%$. In both cases the outcome was public before voting day.
+
+\section{How long does the recovery take?}
+
+The obvious next question is whether the damage is temporary, and the market does come back.
+That observation is not evidence of anything, for the same reason the placebo test was needed
+above: random drops of the same depth also come back.
+
+For each political drop of at least 1\% we count the trading days until the close returns to
+its pre-shock level. Each event is compared with a matched control sample of random drops
+whose depth falls within a tolerance of that event's own depth, so the comparison does not
+depend on how depths are distributed across events. The control pool excludes sessions within
+three days of any real political event and no drop is drawn twice, so the controls are
+independent of the events they are meant to contrast with.
+
+\begin{table}[H]
+\centering
+\caption{Recovery after political shocks of at least 1\%.}
+\label{tab:recovery}
+\input{tables/tab_recovery}
+\end{table}
+
+Recovery is universal, and it is equally universal for drops with no political news attached.
+All \RecPolRecovered\% of political drops of at least 1\% return to the pre-shock close within
+60 sessions, and \RecPlRecovered\% of the matched random drops do the same. On time to recovery
+the paired difference is $\RecMedDiff$ sessions in favour of the control sample, so political
+shocks recover if anything more slowly. Across the $\RecPairN$ usable pairs they recover
+faster in $\RecFasterN$, and the permutation test gives no support for faster recovery. With
+$\RecPairN$ pairs this test has almost no power, which is itself the point: the sample is too
+small to distinguish the two distributions.
+
+The reason is the sample period. BET-TR rose substantially over 2020--2026, which makes
+``back to where it was'' a low bar, and a low bar says nothing about panic. The two shocks
+with the longest recovery are the two where the market kept falling afterwards, which is
+precisely when buying the dip would have hurt.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../monitor/outputs/fig_recovery.png}
+\caption{Time to recovery of the pre-shock close, political shocks against random drops of matched depth.}
+\label{fig:recovery}
+\end{figure}
+
+\section{Is the effect tradable?}
+
+\subsection{Little is left after the news is public}
+
+The opening gap absorbs between $\GapShareLo$\% and $\GapShareHi$\% of the three-day
+cumulative abnormal return around each major shock. What remains for someone who reacts to the
+news, after it is published and the price has already moved, is between $\AfterNewsMin$\% and
+$\AfterNewsMax$\% in absolute terms. A rule that reacts to news trades the remainder. A rule
+that would profit has to hold a position from before the event, which is a forecasting
+problem, and this study contains no evidence about it, since election outcomes are settled
+after the vote.
+
+\subsection{The gross edge is smaller than the cost of trading}
+
+We declared twelve candidate rules in advance and split the sample chronologically into
+\ReguliTrain\ train and \ReguliTest\ test events. One of the twelve is an overlay that takes no
+position at all, so the max statistic that pays for the search is taken over the remaining
+\NTradable{} rules. The best rule ($\BestRule$) earns $\BestGross\%$ per trade gross and
+$\BestNetFifty$\% net at 50 basis points.
+
+\begin{table}[H]
+\centering
+\caption{Net return per trade for the best rule, by transaction cost.}
+\label{tab:cost}
+\input{tables/tab_cost}
+\end{table}
+
+Breakeven sits at $\BreakevenBps$ basis points, interpolated between the two cost levels that
+straddle the crossing. Commission, spread and market impact on a market this illiquid plausibly
+run at 50 to 200 basis points in each direction, and we did not measure them; if that range is
+wrong the verdict changes, which is why the verdict rests on the cost table rather than on any
+single number. The chance of finding something that looks significant by luck alone across
+\NTradable{} attempts is \LuckChance\%.
+
+The reality check on the max statistic returns $p = \RealityP$, and we report it with a caveat
+that matters more than the number. The best observed $t$ across the tradable rules is
+negative, so every null draw beats it by construction and the test has no power to reject
+anything. What it does not say is that the rules are indistinguishable from noise; it says
+that no rule has a positive expected return after costs, which the cost table already
+establishes directly. A reality check earns its keep when some rule looks good, and that is
+exactly the case that does not arise here.
+
+\subsection{The constraint is the sample, not the search}
+
+With $n = \NPower$ events, a per-trade standard deviation of $\SdTrade\%$ and a standard error
+of $\SeTrade\%$, the minimum detectable effect at 5\% significance and 50\% power is $\Mde\%$ per
+trade. Reaching 80\% power at that effect would need roughly $\NNeed$ events, about nine times
+what the period contains. A Romanian electoral cycle offers two or three rounds a year and the
+useful measurement window is one to three sessions, so this design yields tens of events, not
+hundreds.
+
+An effect of this size would therefore not be visible at this sample size, whether or not it
+exists. More rules cannot fix that. Only more events can.
+
+\subsection{One loose thread}
+
+The rule entering at the open of the event day outperformed the rule entering a session
+earlier, and the two differ only in the session before the event. That implies the average
+pre-event session was slightly positive, of order 0.2\%, which would be a small anticipatory
+drift rather than a news-trading effect. At 24 events this is indistinguishable from noise and
+we leave it unresolved. It is the one finding here that a prospective register could test and
+a retrospective sample cannot.
 
 \section{Three results that turned out to be measurement failures}\label{sec:masurari}
 
 The three most striking results of the analysis are not market phenomena.
 
-\subsection{The Ciucă government: a global selloff day}
+\subsection{The CiucÄƒ government: a global selloff day}
 
 The 25 November 2021 event shows a CAR of $\CiucaCar\%$ with $t = \CiucaT$, among the largest
 in the table. The raw path shows otherwise. 26 November 2021 was the global selloff triggered
@@ -278,8 +395,10 @@ million shares against roughly 1.6 million previously, BRD at 175,000 against ab
 SNG at 180,000 against about 14,000.
 
 The $-2.04\%$ residual reported as a STOXX-adjusted effect is an artifact of beta instability.
-The beta estimated over the calm window, about 0.37, understates the crisis co-movement, about
-0.93, so the model predicts a small BET decline, BET falls almost in line with Europe, and the
+The beta the model estimates on its own 50-session window is $\CiucaBetaEst$; re-estimated on the
+50 sessions after the event it is $\CiucaBetaPost$, and on the shock session itself the two
+indices moved almost one for one, BET at $\CiucaBet\%$ against STOXX at $\CiucaStoxx\%$. The
+model therefore predicts a small BET decline, BET falls almost in line with Europe, and the
 model books a fictitious domestic shortfall. A market control is not conservative by
 construction. Any check of an effect's domestic origin has to compare raw returns with STOXX,
 not only the model residual. The explanation we initially entertained, that the market taxed
@@ -288,65 +407,66 @@ which was positive.
 
 \subsection{June 2024 elections: dividend season}
 
-The event shows $-3.01\%$ with $t = \LocaleT$. On total returns the same event is
+The event shows $\LocaleBet\%$ with $t = \LocaleT$. On total returns the same event is
 $\LocaleTr\%$. The cause is the banks' ex-dividend season, which falls exactly in the event
-window. The pipeline now flags this type of contamination automatically, and flags no other
-event in the series.
+window. The pipeline flags this type of contamination automatically and flags no other event
+in the series. Unlike the case above, this is a limitation we could act on: the event is
+excluded from the group test, and doing so changes nothing that follows. It remains in the
+per-event and aggregate sets, where its $p$-value is large and it changes nothing there either.
 
 \subsection{The court annulment: a rebound that had already started}
 
-The Constitutional Court's decision of 6 December 2024 shows $+2.97\%$ on day 0 and
+The Constitutional Court's decision of 6 December 2024 shows $+\CcrArZero\%$ on day 0 and
 $\CcrCar\%$ over three sessions, with one of the largest $t$-statistics in the table. The
 rebound had begun on 4 December, two sessions before the decision: BET traded $-3.24\%$
 intraday, then reversed violently and closed green. The estimation window ends around
 19 November and does not contain the late-November decline, so a stale baseline reads the
-post-crash rebound as a positive abnormal return. We keep the movement as an observation,
-since STOXX was flat and the domestic divergence is real, but exclude it from inference.
+post-crash rebound as a positive abnormal return. Unlike the dividend case we cannot drop
+this event without changing the headline result, so we keep it in every set and flag it. It
+is one of the three events that clear the threshold, and its $p = \CcrP$ should be read as
+conditional on a baseline that we can show to be stale.
 
 \section{Limitations}
 
-Statistical power is low by construction. There are \NEvents{} manually dated events, and the
-placebo calibration shows the detection threshold at BVB is of order 4\% over three sessions,
-so this design cannot settle many further questions about such effects. The number of events
-reaching the 5\% threshold varies with the estimation window, between three and four, even
-though their identity does not; we report this rather than pick a window. No official
-total-return series exist for the individual stocks, so BET-TR covers the index only and
-dividend contamination remains possible at the stock level. BET's composition changes over
-time and the basket used here is fixed. RSS covers only the present, so the historical base
-depends on manual dating, and two events carry medium confidence. BVB is illiquid, so the
-intraday inference rests on high-turnover sessions.
+There are \NEvents{} manually dated events, and the calibration above puts the detection
+threshold at of order 4\% over three sessions, so this design cannot settle many further
+questions about such effects. The number of events reaching 5\% varies between $\NPfiveWshort$
+and $\NPfiveWlong$ with the estimation window, though the same three clear it at every window.
+We report the range rather than pick a window. No official total-return series exist for the
+individual stocks, so
+BET-TR covers the index only and dividend contamination remains possible at the stock level.
+BET's composition changes over time and the basket used here is fixed. RSS covers only the
+present, so the historical base depends on manual dating, and two events carry medium
+confidence. BVB is illiquid, so the intraday inference rests on high-turnover sessions.
 
-External validation is exact: the data reproduce the figures reported in the financial press,
-with BET at 16,982 points and $-0.89\%$ on 25 November 2024 \cite{bursa}, $-1.69\%$ intraday
-and $-0.5\%$ on the second day in May 2025 \cite{profit}, and all indices red \cite{gandul,digi}.
+External validation is partial and we state the limits. The daily data reproduce the reported
+closes: BET at 16,982 points and $-0.89\%$ on 25 November 2024 \cite{bursa}, and $-0.45\%$
+where the press reports ``about half a percent'' on the second day in May 2025 \cite{profit}.
+The intraday figure of $-1.69\%$ \cite{profit} cannot be checked against our data, because the
+feed returns closing prices per 15-minute bar rather than intrabar extremes; our lowest bar
+that day is $-2.88\%$, so the reported low is not contradicted but not confirmed either.
 
 \section{Conclusion}
 
-Romanian politics moves BVB fast. The Monday opening price is the reaction, and in November
-2024 the intraday low came 15 minutes after the open. The cross-section is coherent: banks
-absorb the first blow, energy damps, and the large electoral shocks are demonstrably domestic.
+Romanian politics moves BVB fast, and the market does recover from the resulting drops. But
+recovery is not a reason to buy, since random drops of the same depth recover in slightly less
+time, and the gross edge is smaller than the cost of trading. The effect is real in aggregate
+and unexploitable in practice, which is the honest description of a market this small and this
+illiquid rather than a failure of the study.
 
-On magnitude the answer has two halves, and the first is the important one. In aggregate,
-political news produces movements larger than background noise, a gap of $\EvMeanAbs\%$
-against $\NullMeanAbs\%$ in mean absolute movement at $p = \AggP$. Taken one at a time, only
-three of \NEvents{} events reach 5\%, and one of those three turns out to owe more to something
-else than to politics. Event studies on illiquid markets seldom report more, and the distance
-between a publishable result and a wrong one lies in the test that cannot be fooled by
-multiple comparisons.
+One methodological failure is worth recording for anyone repeating this work, because it cut in
+the flattering direction. Costs were originally subtracted with the sign of the position, so a
+short was credited the transaction cost instead of paying it and short returns rose as costs
+rose. The same rule that looked like a thin positive margin net of 50 basis points loses money
+once the sign is corrected. A cost error of this kind is invisible in the gross numbers and
+surfaces only when the cost parameter is varied.
 
-For an investor the practical conclusion is unchanged: reaction windows open at 10:00 and
-close within minutes. What changes is the reading. Not every piece of electoral news deserves
-a position, only moves of whole percentage points, and the return belongs to the gap between
-the expected and the received.
-
-The methodological contribution is probably the most transferable. A fixed estimation window
-can land in a calm regime and inflate every $t$-statistic at once; here the effect showed up
-as a difference between three and four significant events depending on the window. A price
-adjustment that covers splits but not dividends can manufacture anomalies of two or three
-percentage points in the middle of dividend season. A market control calibrated in calm
-conditions can turn a global crash day into a fictitious domestic effect. All three produced
-results in this study that, taken at face value, would have supported wrong conclusions. The
-code, the data, the placebo test and the figures are available for replication and extension.
+What the sample cannot do is settle the question. The remedy is a prospective register: fix a
+rule, record each shock together with the news that arrived with it, and fill in the outcome
+only afterwards. The accompanying code implements one, writing each detection to a log before
+the outcome is known, so that a few years of accumulation could settle what 24 retrospective
+events cannot. The code, the data, the placebo test and the figures are available for
+replication and extension.
 
 \appendix
 \section{The event set}
@@ -359,12 +479,12 @@ code, the data, the placebo test and the figures are available for replication a
 
 \begin{thebibliography}{9}
 \bibitem{mackinlay1997} MacKinlay, A.C. (1997). Event studies in economics and finance. \emph{Journal of Economic Literature}, 35(1), 13--39.
-\bibitem{bursa} Bursa.ro (2024). \emph{Surpriza din primul tur al alegerilor prezidențiale înroșește BVB}; \emph{Indicii BVB, loviți de incertitudinea perioadei electorale} (27.01.2025).
-\bibitem{profit} Profit.ro (2025). \emph{Impulsul de vânzare post-electoral se estompează la BVB} (6.05.2025).
-\bibitem{digi} Digi24 (2024). \emph{Impactul economic al alegerilor prezidențiale, turul 1} (25.11.2024).
-\bibitem{gandul} G\^andul (2025). \emph{BVB, a doua zi pe roșu după alegeri}; \emph{Bursa a deschis pe roșu după primul tur} (5--6.05.2025).
-\bibitem{agerpres} Agerpres (2025). \emph{Parlament: Guvernul Bolojan a fost învestit} (23.06.2025).
-\bibitem{mediafax} Mediafax (2025). \emph{Dosarul lui Călin Georgescu pentru alegerile prezidențiale, respins} (9.03.2025).
+\bibitem{bursa} Bursa.ro (2024). \emph{Surpriza din primul tur al alegerilor prezidenÈ›iale Ã®nroÈ™eÈ™te BVB}; \emph{Indicii BVB, loviÈ›i de incertitudinea perioadei electorale} (27.01.2025).
+\bibitem{profit} Profit.ro (2025). \emph{Impulsul de vÃ¢nzare post-electoral se estompeazÄƒ la BVB} (6.05.2025).
+\bibitem{digi} Digi24 (2024). \emph{Impactul economic al alegerilor prezidenÈ›iale, turul 1} (25.11.2024).
+\bibitem{gandul} G\^andul (2025). \emph{BVB, a doua zi pe roÈ™u dupÄƒ alegeri}; \emph{Bursa a deschis pe roÈ™u dupÄƒ primul tur} (5--6.05.2025).
+\bibitem{agerpres} Agerpres (2025). \emph{Parlament: Guvernul Bolojan a fost Ã®nvestit} (23.06.2025).
+\bibitem{mediafax} Mediafax (2025). \emph{Dosarul lui CÄƒlin Georgescu pentru alegerile prezidenÈ›iale, respins} (9.03.2025).
 \end{thebibliography}
 
 \end{document}

@@ -1,7 +1,3 @@
-"""fetch_news.py — trage RSS (G4Media, HotNews, Digi24, Economica), filtreaza politic.
-Limita onesta: RSS da doar ultimele ~1-2 zile; pentru istoric 2024-2026 baza e events.csv curatat.
-Utilizare: python fetch_news.py -> data/news_raw.csv + data/news_politic.csv
-"""
 import re
 from pathlib import Path
 from datetime import datetime, timezone
