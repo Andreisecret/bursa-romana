@@ -24,21 +24,79 @@ rezultatelor electorale, pentru că nu poate: rezultatul e încheiat după vot.
 
 ## S1. Strategie direcțională: scurt în jurul evenimentelor
 
-Regula folosește **doar tipul evenimentului** (ex-ante). Costuri rotunde 50 bps.
-Poziție ținută pe [−1,+1].
+Regula folosește **doar tipul evenimentului** (ex-ante). Poziție ținută pe [−1,+1].
+Costuri rotunde 50 bps.
 
 | regulă | n | medie netă | CI 95% | win rate | p vs placebo |
 |---|---|---|---|---|---|
-| scurt, toate evenimentele | 24 | **+0,70%** | **[−0,39, +1,74]** | 66,7% | 0,069 |
+| scurt, toate evenimentele | 24 | **−0,30%** | [−1,39, +0,74] | **37,5%** | 0,940 |
 | lung, toate evenimentele | 24 | −0,74% | [−1,82, +0,38] | 33,3% | 0,055 |
-| scurt, doar alegeri | 7 | +0,89% | [−1,80, +2,89] | 85,7% | 0,186 |
+| scurt, doar alegeri | 7 | −0,11% | [−2,80, +1,89] | 42,9% | 0,943 |
 
-**Intervalul de încredere include zero.** Cu n=24 și o dispersie de 2,7% pe tranzacție,
-media de 0,70% e aproximativ 1,3 erori standard. Nu e diferențiabil de zero.
+**Pierde bani.** Win rate-ul de 37,5% e sub aruncarea unei monede, iar regula bată
+placebo-ul în direcția opusă (p = 0,94).
 
-Mai important: direcția „scurt" a fost aleasă **după ce am văzut că evenimentele cad**.
-Nu a fost o ipoteză preregistrată. Fără preregistrare, faptul că găsim o direcție cu
-semnul potrivit pe 24 de puncte e slab, indiferent de cât de bună arată cifra.
+Direcția „scurt" a fost aleasă **după ce am văzut că evenimentele cad**, deci nici ea nu
+e preregistrată.
+
+## Costurile zic că nici măcar nu e o strategie
+
+`search2.py` rulează cele mai bune reguli la costuri variabile. Cea mai bună dintre cele 12
+(`open_short_all`, scurt de la deschiderea zilei de eveniment):
+
+| costuri | 0 bps | 25 bps | 50 bps | 100 bps | 200 bps |
+|---|---|---|---|---|---|
+| randament/tranzacție | **+0,41%** | +0,16% | **−0,09%** | −0,59% | −1,59% |
+
+**Pragul de rentabilitate e exact la 50 bps.** Pe o piață ca BVB, brokeraj plus spread
+plus impact sunt realist 50–200 bps în ambele sensuri. Marja brută (0,41% pe eveniment) e
+mai mică decât costul intrării în poziție. Nu e o strategie cu o marjă subțire, e o
+strategie fără marjă.
+
+## Căutarea de regulă, cu plata cuplată
+
+`search.py` declară 12 reguli **înainte de rulare** și plătește pentru căutare cu un
+reality check pe max-statistică: pentru fiecare permutare se iau ferestre aleatoare cu
+același număr de evenimente, per regulă, și se păstrează cea mai mare t. Distribuția
+maximului e null-ul corect pentru „cea mai bună dintre 12 reguli".
+
+- cea mai bună t observată: **0,00** (regula de overlay, zero prin construcție)
+- max-statistica nulă: 0,93 în medie, p95 2,28
+- **p (reality check) = 1,0000**
+- șansa de a găsi ceva doar din noroc cu 12 reguli: **46%**
+
+Nimic nu supraviețuiește. O regulă de pe 24 de puncte care pare bună e, la acest eșantion,
+exact ce aș fi găsit și fără ea.
+
+## Puterea de detectie: problema nu e căutarea, e eșantionul
+
+Cu n = 24, dispersie 2,19% și eroare standard 0,45%:
+
+- **efect minim detectabil** (alfa 5%, putere 50%): **0,88%** pe tranzacție
+- efect **brut** observat al celei mai bune reguli: **0,41%**
+- raport brut / minim detectabil: **0,46**
+- pentru putere 80% la efectul brut observat ar trebui **227 de evenimente, avem 24** — de 9 ori
+
+Așadar: o regulă reală ar trebui să mute BET cu aproape un procent întreg la fiecare
+eveniment politic ca să poată fi detectată, iar cea mai bună regulă pe care o avem mută
+BET cu 0,41% **brut**, adică sub prag. Cu 24 de evenimente, un efect real de această
+mărime nu s-ar vedea, indiferent dacă există sau nu.
+
+**Singura creștere reală de putere e mai multe evenimente, nu mai multe reguli.** Un ciclu
+electoral românesc are 2–3 tururi pe an, iar măsurarea utilă cere 1–3 ședințe. Rezultă zeci
+de evenimente, nu sute. Extinderea listei înapoi în timp e singura cale, și e mai lentă decât
+orice optimizare de regulă.
+
+## O notă despre un bug găsit în timpul iterației
+
+Prima versiune scădea costul ca `gross - direction * cost`, ceea ce îi plătea short-ului
+costul în loc să i-l costeze. Rezultat: randamentele short *creșteau* cu costurile
+(+0,41% la 0 bps, +2,41% la 200 bps) și S1 short apărea cu **+0,70%**, ceea ce ară fi fost
+„margine subțire, aproape rentabilă". Corectat, aceeași regulă dă **−0,09%** la 50 bps.
+
+Asta e răspunsul la „iteratează până merge bine": iterația pe corectitudine a făcut
+concluzia mai negativă, nu mai pozitivă. Optimizarea pe cifră ar fi mers în direcția
+opusă.
 
 ## S2. Overlay de risc: expunere zero în ferestrele de eveniment
 
@@ -85,11 +143,13 @@ al cercetării e cel deja raportat: ferestrele de reacție se deschid la 10:00 �
 
 ## Fișiere
 
-- `backtest.py` — harness. Importă datele din `analyze.py`, deci nu are copie proprie.
+- `backtest.py` — harness cu D0 (fezabilitate), S1 (direcțională), S2 (overlay)
+- `search.py` — căutare cu 12 reguli pre-declarate, split cronologic, reality check
+- `search2.py` — sensibilitate la costuri și putere de detectie
 - `outputs/gap_capturable.csv` — D0
-- `outputs/s1_directional.csv` — S1 cu CI și placebo
-- `outputs/s2_overlay.csv`, `outputs/s2_placebo.csv` — S2 și distribuția placebo
+- `outputs/s1_directional.csv`, `s2_overlay.csv`, `s2_placebo.csv`
+- `outputs/search_rules.csv`, `search_reality.csv` — căutarea cu plata cuplată
+- `outputs/search2_cost.csv`, `search2_power.csv` — costuri și putere
 
 Coloanele interzise (`expected`, `semnificativ`, `contaminat_dividend`, valorile CAR) sunt
-declarate în `FORBIDDEN` la începutul fișierului, iar `check.py` verifică că semnalul nu le
-atinge.
+declarate în `FORBIDDEN` în `backtest.py`, iar `check.py` verifică că semnalul nu le atinge.

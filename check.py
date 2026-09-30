@@ -210,12 +210,11 @@ for f in ["strategy/outputs/gap_capturable.csv", "strategy/outputs/s1_directiona
 # 18. rezultatele strategiei trebuie sa fie cele documentate in README (nu drift)
 s1 = pd.read_csv(ROOT / "strategy" / "outputs" / "s1_directional.csv")
 short = s1[s1.strategy == "S1 short ALL events"].iloc[0]
-# rezultatul documentat in strategy/README.md: media e pozitiva, dar CI-ul include zero,
-# deci strategia nu se separa de zero. Daca cineva 'corecteaza' asta, check-ul pica.
+# rezultatul documentat: regula pierde bani la 50 bps, iar CI-ul include zero
 spans_zero = short.ci95_lo < 0 < short.ci95_hi
-ok = bool(spans_zero)
+ok = bool(spans_zero) and short.mean_net_pct < 0
 print(f"{'OK ' if ok else 'FAIL'} S1 scurt: medie {short.mean_net_pct:+.2f}%, "
-      f"CI [{short.ci95_lo:+.2f},{short.ci95_hi:+.2f}] include zero = {spans_zero} (asteptat)")
+      f"win {short.win_rate:.1%}, CI include zero = {spans_zero} (asteptat)")
 if not ok:
     fails.append("s1_null")
 sp = pd.read_csv(ROOT / "strategy" / "outputs" / "s2_placebo.csv").iloc[0]
@@ -224,5 +223,47 @@ print(f"{'OK ' if ok else 'FAIL'} S2 overlay: Sharpe observat {sp.sharpe_observe
       f"< p95 placebo {sp.sharpe_placebo_p95:.2f} (imbunatatirea e zgomot)")
 if not ok:
     fails.append("s2_placebo")
+
+# 19. cautarea cu plata cuplate: nicio regula nu supravietuieste
+rc = pd.read_csv(ROOT / "strategy" / "outputs" / "search_reality.csv").iloc[0]
+ok = rc.p_reality > 0.05
+print(f"{'OK ' if ok else 'FAIL'} reality check: p = {rc.p_reality:.4f} "
+      f"peste {rc.reguli} reguli ({'nimic nu supravietuieste' if ok else 'suspct'})")
+if not ok:
+    fails.append("reality_check")
+# 20. costurile: cea mai buna regula are prag de rentabilitate sub costurile reale
+cost = pd.read_csv(ROOT / "strategy" / "outputs" / "search2_cost.csv")
+best = cost.sort_values("50bps", ascending=False).iloc[0]
+ok = best["50bps"] < 0 and best["0bps"] > 0
+print(f"{'OK ' if ok else 'FAIL'} costuri: {best.regula} {best['0bps']:+.2f}% la 0 bps "
+      f"-> {best['50bps']:+.2f}% la 50 bps (pierde la cost real)")
+if not ok:
+    fails.append("costuri")
+# 21. semnul costului: un short nu primeste costul
+bt2 = (ROOT / "strategy" / "backtest.py").read_text(encoding="utf-8")
+ok = "direction * cost" not in bt2
+print(f"{'OK ' if ok else 'FAIL'} costul se scade cu semnul lui, nu dupa directie")
+if not ok:
+    fails.append("semn_cost")
+# 22. puterea de detectie: legatura cu marimea eșantionului
+pw = pd.read_csv(ROOT / "strategy" / "outputs" / "search2_power.csv").iloc[0]
+ok = pw.n_necesar_pentru_putere_80 > pw.n_evenimente
+print(f"{'OK ' if ok else 'FAIL'} putere: necesari {pw.n_necesar_pentru_putere_80:.0f} "
+      f"evenimente, avem {pw.n_evenimente:.0f} (factor {pw.factor_acoperire:.1f}x)")
+if not ok:
+    fails.append("putere")
+
+# 23. monitor: registrul e prospectiv, iar refacerea nu e mai rapida decat placebo
+pairs = pd.read_csv(ROOT / "monitor" / "outputs" / "recovery_pairs.csv")
+ok = pairs.diferenta.median() >= 0
+print(f"{'OK ' if ok else 'FAIL'} refacere: diferenta mediana eveniment-placebo "
+      f"{pairs.diferenta.median():+.1f} sedinte (>=0 = nu e mai rapida)")
+if not ok:
+    fails.append("refacere")
+thr = pd.read_csv(ROOT / "monitor" / "outputs" / "detection_threshold.csv").iloc[0]
+ok = 1.0 < thr.prag_p95_pct < 4.0
+print(f"{'OK ' if ok else 'FAIL'} prag p95 calibrat: {thr.prag_p95_pct:.2f}%")
+if not ok:
+    fails.append("prag")
 
 raise SystemExit(1 if fails else print("TOATE CHECK-URILE TREC"))

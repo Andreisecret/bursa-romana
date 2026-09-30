@@ -85,7 +85,8 @@ def vol_ok(vol, day, min_liq):
 def trade_returns(rets, positions, cost_bps, direction):
     """Randamentul net pe fereastra de eveniment, pentru o directie data.
     direction: +1 long, -1 short. Pozitia se ia cu 1 sedinta INAINTE de ziua
-    evenimentului (ex-ante: se poate intra inainte de veste, nu dupa)."""
+    evenimentului (ex-ante: se poate intra inainte de veste, nu dupa).
+    Costul se scade cu semnul lui: un short plateste la inchidere."""
     r = rets[PRIMARY].values
     cost = cost_bps / 1e4
     out = []
@@ -93,7 +94,7 @@ def trade_returns(rets, positions, cost_bps, direction):
         p = e["pos"]
         a, b = p + HOLD[0], p + HOLD[1]
         gross = float(np.prod(1 + direction * r[a:b + 1]) - 1)
-        out.append({**e, "gross": gross, "net": gross - direction * cost})
+        out.append({**e, "gross": gross, "net": gross - cost})
     return pd.DataFrame(out)
 
 
@@ -125,7 +126,7 @@ def placebo_distribution(rets, n_draw, cost_bps, direction, n_pos, seed):
     offs = np.arange(HOLD[0], HOLD[1] + 1)
     idx = picks[:, :, None] + offs[None, None, :]            # (n_draw, n_pos, 3)
     gross = np.prod(1 + direction * r[idx], axis=2) - 1      # (n_draw, n_pos)
-    return gross.mean(axis=1) * 100 - direction * cost * 100
+    return gross.mean(axis=1) * 100 - cost * 100
 
 
 def gap_capturable(intraday, rets):

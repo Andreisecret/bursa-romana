@@ -1,0 +1,2 @@
+reguli,t_max_observata,max_null_mean,max_null_p95,p_reality,verdict,n_train,n_test,cost_bps
+12,0.0,0.9337549034316951,2.280478753115594,1.0,NU supravietuieste,11,13,50.0

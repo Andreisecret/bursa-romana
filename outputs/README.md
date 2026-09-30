@@ -90,23 +90,32 @@ Change the estimator and both move together.
 
 ## Can this be a trading strategy? No, and `strategy/` proves it
 
-`strategy/` runs the two rules someone would build from this paper and shows why neither
-survives. The short version:
+`strategy/` runs the rules someone would build from this paper and shows why none survive.
 
 - **Feasibility:** the opening gap absorbs 59–98% of the three-day move. After the news is
   public, what is left is −0.03%, −1.37% and +2.82%. A rule that *reacts* to news acts after
   the price has already jumped. Only a position taken *before* the event could work, and the
   research says nothing about forecasting election outcomes — it cannot, by construction.
-- **S1 short around events:** +0.70% per trade net, 95% CI **[−0.39, +1.74]**, i.e. straddles
-  zero. p = 0.069 against a placebo. And the "short" direction was chosen after looking at the
-  data, not preregistered.
-- **S2 flat around events:** Sharpe improves 1.50 → 1.63 and max drawdown −31.1% → −27.6%, but
-  that removes only 67 of 1,689 sessions. Removing **random** 67 sessions gives a placebo Sharpe
-  95th percentile of **1.66**, above the observed 1.63. The improvement is what you get by
-  picking the windows that fell.
+- **Costs settle it.** The best of 12 pre-declared rules (`search.py`) earns **+0.41% per
+  trade gross and −0.09% net at 50 bps**. Breakeven is exactly 50 bps; realistic BVB
+  commission, spread and impact are 50–200 bps. The gross edge is smaller than the cost of
+  getting in.
+- **Rule search, paid for:** reality check on the max statistic over all 12 rules gives
+  **p = 1.0000**. Nothing survives. With 12 rules the chance of finding something by luck
+  alone is 46%.
+- **S1 short around events:** **−0.30% net** per trade, win rate 37.5%, p = 0.94 against a
+  placebo. It loses money and beats the placebo in the wrong direction.
+- **S2 flat around events:** Sharpe improves 1.50 → 1.63 and max drawdown −31.1% → −27.6%,
+  but that removes only 67 of 1,689 sessions. Removing **random** 67 sessions gives a placebo
+  Sharpe 95th percentile of **1.66**, above the observed 1.63. The improvement is what you
+  get by picking the windows that fell.
+- **The binding constraint is sample size, not search.** Minimum detectable effect at
+  n = 24 is 0.88% per trade; the observed gross effect is 0.41%. Power of 80% at that effect
+  needs **46 events — twice what we have**.
 
 The only legitimate path is the one the paper already names: a prospective event register with
-a rule fixed before the first trade. Nothing in this repo can build that.
+a rule fixed before the first trade. `monitor/` is that instrument: it logs shocks with the
+news that came with them, before the outcome is known.
 
 ## Files
 
