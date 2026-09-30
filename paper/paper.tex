@@ -1,0 +1,237 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[romanian]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\geometry{margin=2.5cm}
+
+\title{Cât de rapid mișcă politica Bursa de la București?\\ Un event-study al șocurilor politice din 2020--2026 asupra indicelui BET}
+\author{}
+\date{septembrie 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\emph{Întrebare:} cât de repede și cât de puternic reacționează acțiunile listate la Bursa de Valori București (BVB) la știrile politice din România? Aplicăm un event-study clasic pe 24 de evenimente din perioada ianuarie 2020 -- iulie 2025, folosind cotații zilnice pentru indicele BET, 8 acțiuni lichide și 4 indici complementari (ROTX, BET-TR, BET-FI, BET-NG), plus bare intraday la 15 minute pentru cele trei șocuri electorale majore. \emph{Rezultate:} (i) reacția la surprize este aproape integrală la deschiderea primei ședințe de tranzacționare de după eveniment --- gap-uri de $-1{,}6\%$, $-2{,}1\%$ și $+4{,}1\%$, cu minimul atins în primele 15 minute în noiembrie 2024; (ii) randamentele anormale cumulate pe fereastra $[-1,+1]$ ajung la $-3{,}5\%$ (mai 2025) și $+6{,}9\%$ (turul al doilea din mai 2025), iar media trio-ului electoral 2024--2025 este $-2{,}94\%$ cu $t=-4{,}33$, semnificativă la 1\%; (iii) extinderea la 2020--2023 arată că șocurile politice \emph{anticipate} nu mișcă piața --- moțiunea care a demis guvernul Cîțu cu 281 de voturi are CAR de $-0{,}13\%$, fiindcă era anunțată --- iar clasa largă a știrilor negative (7 evenimente) este eterogenă ($t=-0{,}93$, nesemnificativ): doar \emph{surpriza} mișcă prețurile; (iv) șocurile electorale sunt pur interne --- indicele STOXX Europe 600 este plat în zilele-cheie, iar corecția cu piața europeană întărește efectele; controalele globale (COVID: $-9{,}37\%$, invazia Ucrainei: $-4{,}28\%$) validează aparatul de măsură; (v) sectorul financiar (BET-FI, $-4{,}51\%$) amplifică, iar energia (BET-NG) amortizează șocurile; băncile absorb prima lovitură (TLV $-4{,}11\%$ într-o zi).
+
+\medskip
+\noindent\textbf{Cuvinte-cheie:} event-study, risc politic, BVB, BET, eficiența pieței, România.
+\end{abstract}
+
+\begin{abstract}
+\emph{How fast does politics move the Bucharest Stock Exchange? An event study of the 2020--2026 political shocks on the BET index.} Using daily quotes for the BET index, 8 liquid stocks and 4 complementary indices over 2020--2026 (24 events), plus 15-minute bars around the three major electoral shocks, we find: (i) surprise reactions are almost fully priced at the open of the first trading session after the event; (ii) three-day cumulative abnormal returns reach $-3.5\%$ and $+6.9\%$, with a cross-sectional $t$ of $-4.33$ for the 2024--2025 electoral trio; (iii) extending to 2020--2023 shows anticipated political shocks do not move the market (the no-confidence vote ousting the C\^{\i}țu government: $-0.13\%$ CAR) and the broad negative-news class is heterogeneous ($t=-0.93$): only \emph{surprise} moves prices; (iv) electoral shocks are purely domestic (flat STOXX 600 on event days), while global controls (COVID $-9.37\%$, Ukraine invasion $-4.28\%$) validate the measurement apparatus; (v) financials amplify and energy dampens the shocks.
+\end{abstract}
+
+\section{Introducere}
+
+Ciclul electoral românesc 2024--2025 --- alegeri locale și europarlamentare (iunie 2024), primul tur prezidențial câștigat-surpriză de Călin Georgescu (noiembrie 2024), alegeri parlamentare (decembrie 2024), anularea procesului electoral de către Curtea Constituțională (decembrie 2024), respingerea candidaturii Georgescu (martie 2025), turul întâi câștigat de George Simion și demisia premierului (mai 2025), victoria lui Nicușor Dan în turul al doilea (mai 2025) și învestirea guvernului Bolojan (iunie 2025) --- oferă un laborator natural pentru măsurarea vitezei cu care riscul politic se transmite în prețurile acțiunilor de la București. Extinderea ferestrei la 2020--2026 adaugă un contrast esențial: guvernările Cîțu și Ciucă, moțiunea de cenzură din 2021, rotativa din 2023 --- o perioadă cu instabilitate politică ridicată, dar cu șocuri majoritar \emph{anticipate} --- plus două controale globale (pandemia, invazia Ucrainei) care validează aparatul de măsură.
+
+Contribuția acestei lucrări este triplă. Mai întâi, construim un pipeline reutilizabil de date care combină backend-ul public al BVB cu fluxuri RSS din presa românească. În al doilea rând, cuantificăm nu doar magnitudinea, ci și \emph{viteza} reacției, folosind date intraday la 15 minute: arătăm că prețul de deschidere \emph{este} reacția. În al treilea rând, separăm formal șocul intern de contextul european (STOXX 600) și descompunem reacția pe sectoare (financiar vs.\ energie) și pe indici (BET vs.\ ROTX).
+
+\section{Date}
+
+\subsection{Cotații BVB}
+
+BVB nu publică un API oficial pentru dezvoltatori, însă site-ul propriu este deservit de un flux de date compatibil TradingView la adresa \url{https://wapi.bvb.ro/api}, accesibil prin cereri HTTP simple (parametrii \texttt{symbol}, \texttt{from}, \texttt{to}, \texttt{rs}, \texttt{ajust}, \texttt{countback}, \texttt{currencyCode}; rezoluția zilnică se cere ca \texttt{rs=1D}). Am descărcat bare zilnice ajustate (splituri și dividende), în RON, pentru perioada 1 ianuarie 2020 -- 28 septembrie 2026: indicele BET, 8 acțiuni lichide (TLV, SNP, BRD, H2O, SNG, DIGI, TEL, SNN) și 4 indici complementari (ROTX, BET-TR, BET-FI, BET-NG) --- circa 1.690 de ședințe per simbol (H2O există doar din iulie 2023, de la cel mai mare IPO din istoria BVB). Pentru extensia intraday am descărcat bare la 15 minute pentru BET și TLV în jurul celor trei șocuri majore.
+
+\subsection{Benchmark extern}
+
+Ca model al pieței europene am folosit indicele STOXX Europe 600 (simbolul \texttt{\textasciicircum{}STOXX}), descărcat zilnic prin interfața publică de grafice Yahoo Finance (1.696 de zile din 2020), aliniat pe calendarul BVB prin reportarea ultimei valori disponibile.
+
+\subsection{Evenimente politice}
+
+Am colectat articole din fluxurile RSS ale G4Media, HotNews, Digi24 și Economica (231 de articole la data colectării, din care 59 cu conținut politic după filtrare pe cuvinte-cheie), însă RSS-ul acoperă doar prezentul, deci baza istorică este un tabel de 24 de evenimente datate manual (\texttt{events.csv}). Fiecare eveniment are, pe lângă nivelul de încredere (\emph{ridicată} pentru 22 de evenimente, \emph{medie} pentru revizuirea Fitch și pachetul fiscal), o clasificare \emph{ex-ante}: \texttt{scope} (intern / extern / piață) și \texttt{expected} (negativ / pozitiv / neutru), plus un flag \texttt{in\_grup} care păstrează o singură observație per șoc de tranzacționare (demisiile suprapuse peste alegeri apar în tabel, dar sunt excluse din testul de grup). Tabelul~\ref{tab:events} listează evenimentele.
+
+\begin{table}[H]
+\centering
+\caption{Evenimentele politice analizate.}
+\label{tab:events}
+{\footnotesize\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lllc}
+\toprule
+Eveniment & Anunț (ora RO) & Ziua 0 & Încredere \\
+\midrule
+Stare de urgență COVID & 16 mar 2020, 12:00 & 16 mar 2020 & ridicată \\
+Locale 2020 & 27 sept 2020, 21:00 & 28 sept 2020 & ridicată \\
+Parlamentare 2020 (surpriza AUR) & 6 dec 2020, 21:00 & 7 dec 2020 & ridicată \\
+Demisia Orban (fereastră suprapusă) & 7 dec 2020, 21:00 & 8 dec 2020 & ridicată \\
+Guvernul Cîțu & 23 dec 2020, 12:00 & 23 dec 2020 & ridicată \\
+Criza Stelian Ion & 1 sept 2021, 12:00 & 1 sept 2021 & ridicată \\
+Moțiune Cîțu (281 voturi) & 5 oct 2021, 15:00 & 5 oct 2021 & ridicată \\
+Guvernul Ciucă & 25 nov 2021, 12:00 & 25 nov 2021 & ridicată \\
+Invazia Ucrainei & 24 feb 2022, 06:00 & 24 feb 2022 & ridicată \\
+Rotativa Ciolacu & 15 iun 2023, 12:00 & 15 iun 2023 & ridicată \\
+Debut H2O (control de piață) & 12 iul 2023, 09:00 & 12 iul 2023 & ridicată \\
+Locale + europarlamentare & 9 iun 2024, 21:00 & 10 iun 2024 & ridicată \\
+Prezidențiale T1 (Georgescu) & 24 nov 2024, 21:00 & 25 nov 2024 & ridicată \\
+Parlamentare & 1 dec 2024, 21:00 & 2 dec 2024 & ridicată \\
+CCR anulează alegerile & 6 dec 2024, 12:00 & 6 dec 2024 & ridicată \\
+Schengen terestru (control +) & 12 dec 2024, 12:00 & 12 dec 2024 & ridicată \\
+Fitch $\rightarrow$ perspectivă negativă & 18 dec 2024, 12:00 & 18 dec 2024 & medie \\
+Guvernul Ciolacu 2 & 23 dec 2024, 12:00 & 23 dec 2024 & ridicată \\
+BEC respinge candidatura Georgescu & 9 mar 2025, 21:00 & 10 mar 2025 & ridicată \\
+Prezidențiale T1 (Simion) & 4 mai 2025, 21:00 & 5 mai 2025 & ridicată \\
+Demisia premierului Ciolacu & 5 mai 2025, 12:00 & 5 mai 2025 & ridicată \\
+Prezidențiale T2 (N.\ Dan) & 18 mai 2025, 21:00 & 19 mai 2025 & ridicată \\
+Guvernul Bolojan & 23 iun 2025, 12:00 & 23 iun 2025 & ridicată \\
+Pachetul fiscal (TVA) & 7 iul 2025, 12:00 & 7 iul 2025 & medie \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\section{Metodologie}
+
+Urmăm metodologia standard a studiilor de eveniment \cite{mackinlay1997}. Pentru fiecare eveniment definim ziua de tranzacționare $0$: dacă anunțul apare într-o zi de tranzacționare înainte de ora 18:00 (EET), ziua $0$ este ziua însăși, altfel este următoarea zi de tranzacționare. Toate scrutinurile au avut loc duminica seara, deci ziua $0$ este lunea următoare --- gap-ul la deschidere surprinde integral informația acumulată în weekend.
+
+Fereastra de estimare este $[-60,-11]$ zile de tranzacționare (trunchiată la începutul seriei, cu minim 30 de observații; evenimentele sunt omise dacă istoricul este insuficient), iar ferestrele de eveniment sunt $[0,0]$, $[-1,+1]$ și $[-5,+5]$. Pentru BET și indici, randamentul anormal este $AR_t = R_t - \bar{R}_{est}$ (ajustare la medie); pentru acțiuni folosim modelul de piață OLS față de BET, iar pentru controlul extern modelul OLS al BET față de STOXX 600 (ambii estimați pre-eveniment). Statistica de test este $t = CAR / (\hat{\sigma}\sqrt{T})$, cu pragurile uzuale: $*$ pentru $|t|>1{,}96$, $**$ pentru $|t|>2{,}58$. Pragul practic de ``semnificativ economic'' este $|AR_0|>2\%$ sau $|CAR[-1,+1]|>3\%$. Pentru grupul șocurilor negative raportăm și un test cross-sectional, $t = \overline{CAR}/(s/\sqrt{n})$.
+
+\section{Rezultate}
+
+\subsection{Magnitudinea șocurilor}
+
+Tabelul~\ref{tab:main} prezintă randamentele anormale ale BET. Cele trei șocuri electorale negative au CAR$[-1,+1]$ între $-1{,}6\%$ și $-3{,}7\%$; unda de șoc din mai 2025 (turul întâi + demisia premierului, inseparabile --- cad pe aceeași zi de tranzacționare, 5 mai) atinge $AR_0=-2{,}91\%$ ($t=-2{,}59$). Victoria pro-europeană din turul al doilea produce un rally de $+6{,}85\%$ ($t=3{,}54$). Remarcabil, reacția la parlamentarele din decembrie 2024 este întârziată: $+0{,}60\%$ în ziua $0$, apoi $-3{,}73\%$ cumulat, pe măsură ce criza CCR se construia --- piața a avut nevoie de informația suplimentară pentru a prețui scenariul anulării.
+
+\begin{table}[H]
+\centering
+\caption{Randamente anormale BET pe eveniment (procente; $t$ între paranteze).}
+\label{tab:main}
+{\footnotesize\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lrrrrr}
+\toprule
+Eveniment & Ziua $0$ & $AR_0$ & CAR$[-1,+1]$ & CAR$[-5,+5]$ & Net STOXX \\
+\midrule
+T1 nov 2024 & 25 nov & $-0{,}80$ $(-1{,}23)$ & $-1{,}59$ $(-1{,}40)$ & $-5{,}99$ $(-2{,}76)$ & $-1{,}86$ \\
+Parlamentare 2024 & 2 dec & $+0{,}60$ $(1{,}03)$ & $-3{,}73$ $(-3{,}71^{**})$ & $-0{,}91$ & $-3{,}93$ \\
+Anulare CCR & 6 dec & $+2{,}97$ $(4{,}64^{**})$ & $+4{,}35$ $(3{,}92^{**})$ & $+4{,}66$ & $+4{,}22$ \\
+T1 + demisie 2025 & 5 mai & $-2{,}91$ $(-2{,}59^{*})$ & $-3{,}50$ $(-1{,}80)$ & $-5{,}59$ & $-4{,}54$ \\
+T2 mai 2025 & 19 mai & $+4{,}15$ $(3{,}71^{**})$ & $+6{,}85$ $(3{,}54^{**})$ & $+8{,}21$ & $+6{,}11$ \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Figura~\ref{fig:timeline} arată traiectoria BET cu evenimentele marcate, iar Figura~\ref{fig:car} căile CAR$[-5,+5]$: șocurile negative nu se recuperează în 5 zile (CAR $-5{,}6\%$ / $-6{,}0\%$), în timp ce vestea din mai 2025 lasă $+8{,}2\%$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/fig_bet_timeline.png}
+\caption{BET 2020--2026 cu evenimentele politice (linii roșii = încredere ridicată).}
+\label{fig:timeline}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../outputs/fig_car_paths.png}
+\caption{CAR$[-5,+5]$ per eveniment: viteza și persistența reacției BET.}
+\label{fig:car}
+\end{figure}
+
+\subsection{Viteza: reacția vine la deschidere}
+
+Tabelul~\ref{tab:speed} și Figura~\ref{fig:intra} rezumă barele la 15 minute. În noiembrie 2024 gap-ul la deschidere a fost $-1{,}57\%$, minimul zilei ($-1{,}84\%$) a fost atins la 10:15 --- la 15 minute după open --- iar închiderea a recuperat la $-0{,}89\%$. În mai 2025 gap-ul de $-2{,}13\%$ s-a adâncit continuu până la $-2{,}88\%$ la închidere (panică susținută, nu flash-crash). În mai 2025, pe sens pozitiv, practic tot câștigul ($+4{,}12\%$ gap, $+4{,}08\%$ închidere) s-a format la deschidere.
+
+\begin{table}[H]
+\centering
+\caption{Viteza reacției intraday BET (bare la 15 minute).}
+\label{tab:speed}
+{\small\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrl}
+\toprule
+Șoc & Gap open & Minim (ora RO) & Închidere & Tipar \\
+\midrule
+25 nov 2024 & $-1{,}57\%$ & $-1{,}84\%$ (10:15) & $-0{,}89\%$ & instant + recuperare \\
+5 mai 2025 & $-2{,}13\%$ & $-2{,}88\%$ (17:45) & $-2{,}88\%$ & degradare toată ziua \\
+19 mai 2025 & $+4{,}12\%$ & $+3{,}62\%$ (12:30) & $+4{,}08\%$ & câștig instant \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/fig_intraday_tur1_2025.png}
+\caption{Reacția intraday (15 minute) la turul întâi din mai 2025, BET și TLV rebazate pre-șoc.}
+\label{fig:intra}
+\end{figure}
+
+\subsection{Secțiune transversală: cine reacționează mai tare?}
+
+Tabelul~\ref{tab:idx} și Figura~\ref{fig:idx} compară indicii. ROTX reproduce aproape identic BET (ex.\ $-3{,}32\%$ vs.\ $-3{,}50\%$; $+6{,}88\%$ vs.\ $+6{,}85\%$), ceea ce exclude o anomalie de construcție a indicelui. Sectorul financiar (BET-FI) amplifică panica din mai 2025 ($-4{,}51\%$, cel mai negativ din tabel), în timp ce energia (BET-NG) amortizează sistematic șocurile ($-2{,}82\%$ vs.\ $-3{,}50\%$; $-0{,}90\%$ vs.\ $-1{,}59\%$). La nivel de acțiuni, băncile absorb prima lovitură: TLV $-4{,}11\%$ în ziua de 5 mai 2025 (față de BET $-2{,}88\%$), SNP $-2{,}57\%$, H2O $-1{,}86\%$.
+
+\begin{table}[H]
+\centering
+\caption{CAR$[-1,+1]$ comparat pe indici (procente).}
+\label{tab:idx}
+\begin{tabular}{lrrrr}
+\toprule
+Eveniment & BET & ROTX & BET-FI (financiar) & BET-NG (energie) \\
+\midrule
+Turul 1, 2024 & $-1{,}59$ & $-1{,}28$ & $+0{,}03$ & $-0{,}90$ \\
+Parlamentare, 2024 & $-3{,}73$ & $-3{,}58$ & $-3{,}55$ & $-2{,}87$ \\
+Anulare CCR, 2024 & $+4{,}35$ & $+4{,}21$ & $+1{,}90$ & $+3{,}67$ \\
+Turul 1, 2025 & $-3{,}50$ & $-3{,}32$ & $-4{,}51$ & $-2{,}82$ \\
+Turul 2, 2025 & $+6{,}85$ & $+6{,}88$ & $+5{,}14$ & $+6{,}13$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/fig_indices_car3.png}
+\caption{CAR$[-1,+1]$ pe indici la cele cinci șocuri majore.}
+\label{fig:idx}
+\end{figure}
+
+\subsection{Șocurile sunt pur interne}
+
+În zilele-cheie, STOXX Europe 600 este practic plat ($+0{,}06\%$, $+0{,}16\%$, $+0{,}13\%$), în timp ce BET înregistrează $-0{,}89\%$, $-2{,}88\%$ și $+4{,}08\%$ --- divergențe de $-0{,}95$, $-3{,}05$ și $+3{,}95$ puncte procentuale (Figura~\ref{fig:stoxx}). Corecția cu modelul de piață europeană \emph{întărește} efectele (CAR net $-1{,}86\%$, $-4{,}54\%$, $+6{,}11\%$), confirmând că nu măsurăm zile global-roșii. Utilitatea controlului este ilustrată de contraexemplu: pe 10 martie 2025 (respingerea candidaturii Georgescu) Europa era roșie ($-1{,}29\%$), iar BET ($-0{,}82\%$ brut) a \emph{supra}performat continentul (CAR net $+1{,}22\%$) --- fără control am fi atribuit greșit pieței locale o zi europeană slabă.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../outputs/fig_bet_vs_stoxx.png}
+\caption{BET vs.\ STOXX 600 (baza 100 la începutul lui 2020): șocurile politice românești decuplează BVB de Europa.}
+\label{fig:stoxx}
+\end{figure}
+
+\subsection{Fereastra 2020--2023 și controalele globale}
+
+Perioada 2020--2023 oferă contrastul care lipsea: instabilitate politică ridicată, dar șocuri majoritar anticipate. Moțiunea de cenzură din 5 octombrie 2021 --- cel mai mare vot de demitere a unui guvern din istoria României (281 voturi) --- are CAR$[-1,+1]$ de $-0{,}13\%$ ($t=-0{,}12$): zero absolut. Explicația este informațională, nu politică: coaliția de circa 280 de voturi (PSD--USR--AUR) era publică înaintea votului, iar votul însuși a avut loc în timpul ședinței (15:00), deci piața prețuise deja rezultatul. Similar, parlamentarele din 2020 (surpriza AUR, 9\%) au CAR de $-0{,}09\%$ în ziua 0 --- piața a așteptat deznodământul (demisia lui Orban a doua zi, fereastră suprapusă, ambele rânduri $\approx 0$). Criza Stelian Ion (septembrie 2021) atinge $-2{,}10\%$ ($t=-1{,}84$), la limita semnificației.
+
+Controalele globale validează aparatul: starea de urgență COVID (16 martie 2020) dă $AR_0=-9{,}37\%$ ($t=-9{,}26$) cu STOXX la $-4{,}86\%$ --- BET a căzut de circa două ori mai tare decât Europa, o supra-reacție locală; invazia Ucrainei (24 februarie 2022) dă $AR_0=-4{,}28\%$ față de STOXX $-3{,}28\%$, deci preponderent global. Controlul pozitiv de piață funcționează simetric: debutul Hidroelectrica (12 iulie 2023, cel mai mare IPO din istoria BVB) are CAR de $+2{,}91\%$ ($t=2{,}85$).
+
+Anomalia perioadei este guvernul Ciucă (25 noiembrie 2021): semn așteptat pozitiv (formare de guvern), realizat CAR $-2{,}57\%$ ($t=-2{,}96^{**}$). O raportăm fără interpretare forțată --- posibilă taxare a marii coaliții PSD--PNL sau contaminare cu riscul fiscal de sfârșit de an --- și o lăsăm ca direcție de investigație.
+
+\subsection{Testul de grup și non-evenimentele}
+
+Media CAR$[-1,+1]$ pe trio-ul electoral 2024--2025 (turul 1 din 2024, parlamentarele din 2024, turul 1 din 2025 --- surprize omogene, zile distincte) este $\mathbf{-2{,}94\%}$, cu $t$ cross-sectional de $\mathbf{-4{,}33}$ (semnificativ la 1\%). În schimb, clasa largă a știrilor interne cu semn așteptat negativ (7 evenimente, 2020--2025) este eterogenă: media CAR este $-0{,}97\%$ cu $t=-0{,}93$, nesemnificativ --- trasă în jos de zerourile din 2020--2021 și în sus de anomalia CCR ($+4{,}35\%$, semn invers celui așteptat). Aceasta este o constatare, nu o eroare: nu orice știre politică este un șoc bursier.
+
+Evenimentele anticipate nu mișcă piața: moțiunea din 2021 (CAR $-0{,}13\%$), guvernul Cîțu ($+0{,}67\%$), respingerea candidaturii Georgescu ($+0{,}08\%$), guvernul Bolojan ($-0{,}72\%$), pachetul fiscal ($-0{,}73\%$), rotativa din 2023 ($+2{,}12\%$, $t=2{,}43$, reacție ușoară la un eveniment programat) --- toate, cu excepția menționată, sub pragul economic și statistic. Rezultatul este consistent cu eficiența informațională: doar surpriza mișcă prețurile.
+
+\section{Discuții și limitări}
+
+Trei rezultate cer prudență. (1) Anularea alegerilor de către CCR (6 decembrie) arată $+2{,}97\%$ în ziua $0$ --- contraintuitiv; interpretarea noastră este un \emph{bear-market rally} într-un trimestru de $-5{,}1\%$, nu o evaluare pozitivă a anulării. (2) Alegerile din iunie 2024 au CAR$[-1,+1]$ de $-3{,}01\%$ ($t=-3{,}49$), suspect de mare pentru un scrutin fără surprize --- probabil contaminare cu driveri corporativi (sezon de dividende). (3) Turul întâi din 2025 și demisia premierului sunt inseparabile econometric (aceeași zi de tranzacționare); le tratăm ca un șoc combinat.
+
+Limitări structurale: componența BET se schimbă în timp (coșul nostru este fix); RSS-ul acoperă doar prezentul, deci istoricul depinde de datare manuală (2 evenimente cu încredere medie); BVB este ilichidă, deci inferența intraday se sprijină pe zile cu rulaj mare; testul de grup pe clasa largă are $n=7$ cu un semn inversat (CCR) --- eterogenitatea este raportată explicit tocmai pentru a evita concluzii trase din selecție; demisia lui Orban (decembrie 2020) se suprapune peste fereastra parlamentarelor, efecte inseparabile, ambele $\approx 0$ oricum.
+
+Validarea externă este însă exactă: datele noastre reproduc întocmai cifrele din presa financiară --- BET 16.982 puncte / $-0{,}89\%$ pe 25 noiembrie 2024 \cite{bursa}, $-1{,}69\%$ intraday și $-0{,}5\%$ a doua zi în mai 2025 \cite{profit}, toții indicii pe roșu \cite{gandul,digi}.
+
+\section{Concluzii}
+
+Politica românească mișcă BVB repede și tare, dar numai când surprinde: gap-ul la deschiderea de luni \emph{este} reacția (minute, nu zile), magnitudinea atinge $\pm3$--$7\%$ pe fereastra de trei zile, iar extinderea la 2020--2026 arată reversul --- moțiuni istorice și alegeri fără surpriză lasă CAR $\approx 0$. Șocurile electorale sunt demonstrabil interne, financiarul amplifică iar energia amortizează. Pentru investitori, lecția practică este că ferestrele de reacție la București sunt de ordinul minutelor la deschidere --- iar pentru cercetători, că BVB, deși mică și ilichidă, prețuiește riscul politic cu o viteză comparabilă piețelor dezvoltate, dar numai când informația este genuin nouă. Codul, datele și figurile sunt disponibile pentru replicare și extindere.
+
+\begin{thebibliography}{9}
+\bibitem{mackinlay1997} MacKinlay, A.C. (1997). Event studies in economics and finance. \emph{Journal of Economic Literature}, 35(1), 13--39.
+\bibitem{bursa} Bursa.ro (2024). Surpriza din primul tur al alegerilor prezidențiale înroșește BVB; Indicii BVB --- loviți de incertitudinea perioadei electorale (27.01.2025).
+\bibitem{profit} Profit.ro (2025). Impulsul de vânzare post-electoral se estompează la BVB (6.05.2025).
+\bibitem{digi} Digi24 (2024). Impactul economic al alegerilor prezidențiale, turul 1: Bursa a înregistrat o scădere abruptă (25.11.2024).
+\bibitem{gandul} Gândul (2025). BVB, a doua zi pe roșu după alegeri; Bursa a deschis pe roșu după primul tur (5--6.05.2025).
+\bibitem{agerpres} Agerpres (2025). Parlament: Guvernul Bolojan a fost învestit (23.06.2025).
+\bibitem{mediafax} Mediafax (2025). Dosarul lui Călin Georgescu pentru alegerile prezidențiale, respins (9.03.2025).
+\end{thebibliography}
+
+\end{document}

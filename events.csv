@@ -1,0 +1,25 @@
+event_id,datetime_ro,tip,titlu,sursa,confidence,scope,expected,in_grup
+covid_urgenta_2020,2020-03-16 12:00,sanatate,"Stare de urgenta COVID (decret Iohannis, luni)",Presedintie,ridicata,extern,negativ,nu
+locale_2020,2020-09-27 21:00,alegeri,"Locale 2020 (duminica seara)",BEC,ridicata,intern,neutru,nu
+parlamentare_2020,2020-12-06 21:00,alegeri,"Parlamentare: PSD 29%, PNL 25%, surpriza AUR 9%",BEC,ridicata,intern,negativ,da
+demisie_orban_2020,2020-12-07 21:00,guvern,"Demisia lui Orban dupa esecul parlamentar (luni; fereastra suprapusa cu parlamentarele)",Guvern/presa,ridicata,intern,negativ,nu
+guvern_citu_2020,2020-12-23 12:00,guvern,"Guvernul Citu investit (PNL-USR-UDMR)",Parlament,ridicata,intern,pozitiv,da
+criza_stelian_2021,2021-09-01 12:00,guvern,"Citu il demite pe Stelian Ion; USR iese de la guvernare",Guvern/presa,ridicata,intern,negativ,da
+motiune_citu_2021,2021-10-05 15:00,motiune,"Motiunea trece cu 281 voturi; guvernul Citu pica (marti, in sedinta)",Parlament,ridicata,intern,negativ,da
+guvern_ciuca_2021,2021-11-25 12:00,guvern,"Guvernul Ciuca investit (PNL-PSD-UDMR)",Parlament,ridicata,intern,pozitiv,da
+invazie_2022,2022-02-24 06:00,extern,"Invazia Ucrainei (joi dimineata)",presa,ridicata,extern,negativ,nu
+rotativa_ciolacu_2023,2023-06-15 12:00,guvern,"Guvernul Ciolacu investit la rotativa (joi; programata din 2021)",Parlament,ridicata,intern,neutru,nu
+ipo_h2o_2023,2023-07-12 09:00,piata,"Debut H2O: cel mai mare IPO BVB, +5.7% prima zi (control pozitiv de piata)",BVB,ridicata,piata,pozitiv,nu
+locale_euro_2024,2024-06-09 21:00,alegeri,"Alegeri locale + europarlamentare (rezultate duminica seara)",BEC,ridicata,intern,neutru,nu
+tur1_2024,2024-11-24 21:00,alegeri,"Prezidentiale tur1: Georgescu surpriza pe locul 1, Lasconi locul 2",BEC/presa,ridicata,intern,negativ,da
+parlamentare_2024,2024-12-01 21:00,alegeri,"Parlamentare: PSD primul, AUR/SOS/POT scor mare",BEC/presa,ridicata,intern,negativ,da
+ccr_anulare_2024,2024-12-06 12:00,ccr,"CCR anuleaza intregul proces electoral prezidential (Hot. 32)",CCR,ridicata,intern,negativ,da
+schengen_2024,2024-12-12 12:00,extern,"Consiliul JAI aproba Schengen terestru de la 1 ian 2025 (control pozitiv)",Consiliul UE,ridicata,extern,pozitiv,nu
+fitch_negativ_2024,2024-12-18 12:00,rating,"Fitch revizuieste perspectiva României la negativa (incertitudine politica)",Fitch,medie,intern,negativ,nu
+guvern_ciolacu2_2024,2024-12-23 12:00,guvern,"Guvernul Ciolacu 2 investit (PSD-PNL-UDMR)",Parlament,ridicata,intern,neutru,nu
+bec_respinge_2025,2025-03-09 21:00,ccr-alegeri,"BEC respinge candidatura lui Georgescu (duminica seara)",BEC/Mediafax,ridicata,intern,neutru,nu
+tur1_2025,2025-05-04 21:00,alegeri,"Prezidentiale tur1: Simion 40.9%, Dan 21.0%, Antonescu 20.0%",BEC,ridicata,intern,negativ,da
+demisie_ciolacu_2025,2025-05-05 12:00,guvern,"Demisia premierului Ciolacu; guvern interimar (luni; aceeasi zi cu tur1)",Guvern/presa,ridicata,intern,negativ,nu
+tur2_2025,2025-05-18 21:00,alegeri,"Prezidentiale tur2: Nicusor Dan castiga (~53.6%) vs Simion",BEC,ridicata,intern,pozitiv,da
+guvern_bolojan_2025,2025-06-23 12:00,guvern,"Guvernul Bolojan investit (301 voturi; PSD-PNL-USR-UDMR)",Parlament/Agerpres,ridicata,intern,neutru,nu
+pachet_fiscal_2025,2025-07-07 12:00,fiscal,"Pachet fiscal 1: TVA majorat, asumare raspundere Bolojan (saptamana 7 iul)",Guvern/presa,medie,intern,neutru,nu

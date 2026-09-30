@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+paper/build*.log
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/texput.log
