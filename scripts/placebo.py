@@ -7,7 +7,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from analyze import abnormal, PRIMARY, NEIGHBOUR, WINDOWS
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 OUT = ROOT / "outputs"
 POST_COVID = "2022-01-01"

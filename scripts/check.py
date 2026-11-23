@@ -1,7 +1,7 @@
 from pathlib import Path
 import pandas as pd
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 px = pd.read_csv(ROOT / "data" / "prices_daily.csv", parse_dates=["date"]).pivot(
     index="date", columns="ticker", values="close").sort_index()
 

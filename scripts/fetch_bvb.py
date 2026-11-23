@@ -9,7 +9,7 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; bvb-go)",
            "Referer": "https://www.bvb.ro/"}
 TICKERS = ["BET", "TLV", "SNP", "BRD", "H2O", "SNG", "DIGI", "TEL", "SNN",
            "ROTX", "BET-TR", "BET-FI", "BET-NG"]
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
 

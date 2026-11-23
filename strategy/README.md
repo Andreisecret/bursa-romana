@@ -1,7 +1,7 @@
 # Poate cercetarea din `paper/` transformată într-o strategie de trading?
 
 Rulare: `python strategy/backtest.py` (de pe linia de comandă a repo-ului, după ce
-`analyze.py` și `placebo.py` au produs ieșirile).
+`scripts/analyze.py` și `scripts/placebo.py` au produs ieșirile).
 
 ## Răspuns scurt: nu, nu în forma pe care o susține cercetarea
 

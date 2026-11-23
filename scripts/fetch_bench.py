@@ -4,7 +4,7 @@ from pathlib import Path
 import requests
 import pandas as pd
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120"}

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 BASE = "https://wapi.bvb.ro"
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; bvb-go)", "Referer": "https://www.bvb.ro/"}
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"; OUT = ROOT / "outputs"; OUT.mkdir(exist_ok=True)
 RO = ZoneInfo("Europe/Bucharest")
 WINDOWS = {

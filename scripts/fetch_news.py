@@ -14,7 +14,7 @@ KEYWORDS = ["alegeri", "preziden", "parlamentare", "ccr", "curtea constitu",
     "guvern", "motiune", "demisie", "ciolacu", "simion", "georgescu",
     "lasconi", "nicusor", "anton", "bec", "turul", "vot", "bolojan",
     "parlament", "coalitie", "bursa", "bet", "fitch", "moody"]
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 DATA.mkdir(exist_ok=True)
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120"}
